@@ -745,9 +745,6 @@ const Quiz = () => {
 
           {/* Score and Attempts Display */}
           <div className="mt-4 text-center space-y-2">
-            <div className="text-gray-600 font-bold transform hover:scale-110 transition-transform">
-              Current Score: {score} / {quizQuestions.length}
-            </div>
             <div className="text-sm text-gray-500">
               Attempts this question: {(attempts[currentQuestion] || []).length}
             </div>
