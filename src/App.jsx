@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 import React from 'react';
 import './App.css';
 import Quiz from './Quiz';
@@ -44,7 +31,7 @@ function App() {
             {/* Google Slides Presentation */}
             <div className="w-full max-w-4xl aspect-video rounded-lg shadow-lg overflow-hidden">
               <iframe
-                src="https://docs.google.com/presentation/d/1jwCitbKgMxG7wCzLXBrBv1KSEAhvQoWs/preview?start=true&loop=true&delayms=5000"
+                src="https://docs.google.com/presentation/d/e/2PACX-1vTRdcVoHOXaOhYDNDkm6Iy-H7grNUq1eFY6rW_By4V2HT3avfcr7aZKQ5Dxs4HpqdXsyMVhogBLW16G/pubembed?start=false&loop=false&delayms=3000" frameborder="0" 
                 width="100%"
                 height="100%"
                 allow="autoplay"

@@ -1,183 +1,468 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AlertCircle, CheckCircle2, ChevronRight, Cloud, Sun, Zap, Trophy, Users, Plus, X, Clock, ChevronLeft } from 'lucide-react';
+import { AlertCircle, CheckCircle2, ChevronRight, Trophy, Users, Plus, X, Clock, ChevronLeft } from 'lucide-react';
 import { Alert, AlertDescription } from './components/ui/alert';
 
 const SOUNDS = {
-  timesUp: '/sounds/times-up.wav',
   correct: '/sounds/correct.wav',
   wrong: '/sounds/wrong.wav'
 };
 
 const quizQuestions = [
   {
-    question: "What should you do if an earthquake happens while you are inside your classroom?",
-    options: [
-      "Take cover under your desk",
-      "Run outside immediately",
-      "Stand near a window and watch",
-      "Jump up and down",
-      "Call your friends to take selfies",
-      "Throw your books at the shaking walls"
+    "question": "What should you do if an earthquake happens while you are inside your classroom? / कक्षाभित्र भूकम्प आएमा तपाईंले के गर्नु पर्छ?",
+    "options": [
+      "Take cover under your desk / आफ्नो डेस्कको तल लुक्नुहोस्",
+      "Run outside immediately / सिधै बाहिर दौडिनुहोस्",
+      "Stand near a window and watch / झ्यालको नजिक उभिएर हेर्नुहोस्",
+      "Jump up and down / उफ्रन थाल्नुहोस्",
+      "Call your friends to take selfies / सेल्फी खिच्न साथीहरूलाई बोलाउनुहोस्",
+      "Throw your books at the shaking walls / कम्पन भित्तामा किताब फ्याँक्नुहोस्"
     ],
-    correctAnswer: "Take cover under your desk",
-    funFact: "Hiding under a desk protects you from falling objects during an earthquake!"
+    "correctAnswer": "Take cover under your desk / आफ्नो डेस्कको तल लुक्नुहोस्",
+    "funFact": "Hiding under a desk protects you from falling objects during an earthquake! / डेस्कको तल लुक्दा भूकम्पको बेला खस्न सक्ने वस्तुहरूबाट सुरक्षा मिल्छ!"
   },
   {
-    question: "How can we reduce air pollution in Kathmandu?",
-    options: [
-      "Use bicycles or walk instead of riding cars",
-      "Burn plastic and garbage to make the air warm",
-      "Cut down all trees to create open space",
-      "Keep factories running 24/7 with no filters",
-      "Only wear masks but do nothing else",
-      "Blow a fan towards the sky to push pollution away"
+    "question": "Which gas is mainly responsible for global warming? / ग्लोबल वार्मिङको लागि मुख्य जिम्मेवार ग्यास कुन हो?",
+    "options": [
+      "Carbon dioxide / कार्बन डाइअक्साइड",
+      "Oxygen / अक्सिजन",
+      "Nitrogen / नाइट्रोजन",
+      "Helium / हेलियम",
+      "Hydrogen / हाइड्रोजन",
+      "Neon / निओन"
     ],
-    correctAnswer: "Use bicycles or walk instead of riding cars",
-    funFact: "Fewer cars on the road mean cleaner air for everyone!"
+    "correctAnswer": "Carbon dioxide / कार्बन डाइअक्साइड",
+    "funFact": "Carbon dioxide traps heat in the atmosphere, causing the Earth to warm up. / कार्बन डाइअक्साइडले वातावरणमा ताप रोक्छ, जसले गर्दा पृथ्वी तातिन्छ।"
   },
   {
-    question: "What is the best way to prepare for floods in Nepal?",
+    question: "What is a common cause of landslides in Nepal? / नेपालमा पहिरोको सामान्य कारण के हो?",
     options: [
-      "Build houses on higher ground",
-      "Store all your things in the basement",
-      "Make paper boats and float on the water",
-      "Wait for the water to disappear on its own",
-      "Dig holes to hide from the water",
-      "Collect the floodwater in buckets"
+      "Heavy rainfall / धेरै वर्षा",
+      "Loud music / ठूलो आवाजको संगीत",
+      "Traffic jam / ट्राफिक जाम",
+      "Too many trees / धेरै रूखहरू",
+      "Street lights / सडक बत्तीहरू",
+      "Sunny weather / घाम लाग्ने मौसम"
     ],
-    correctAnswer: "Build houses on higher ground",
-    funFact: "Living on higher ground keeps people safe from rising floodwaters!"
+    correctAnswer: "Heavy rainfall / धेरै वर्षा",
+    funFact: "In Nepal, heavy rain during the monsoon season often causes landslides. / नेपालमा मनसुनको समयमा धेरै वर्षा हुँदा प्रायः पहिरो आउँछ।"
   },
   {
-    question: "Why do we need to plant more trees?",
+    question: "Which of these is a renewable source of energy? / यीमध्ये कुन नवीकरणीय ऊर्जा स्रोत हो?",
     options: [
-      "They clean the air and give us oxygen",
-      "They make our playgrounds messy",
-      "They create more shade for sleeping",
-      "They scare away birds",
-      "They stop Wi-Fi signals",
-      "They take up too much space"
+      "Solar energy / सौर्य ऊर्जा",
+      "Petrol / पेट्रोल",
+      "Diesel / डिजेल",
+      "Coal / कोइला",
+      "Natural gas / प्राकृतिक ग्यास",
+      "Plastic / प्लास्टिक"
     ],
-    correctAnswer: "They clean the air and give us oxygen",
-    funFact: "Trees absorb carbon dioxide and help fight climate change!"
+    correctAnswer: "Solar energy / सौर्य ऊर्जा",
+    funFact: "Solar energy is clean and comes from the sun. It's free and unlimited! / सौर्य ऊर्जा सफा हुन्छ र सूर्यबाट प्राप्त हुन्छ। यो निःशुल्क र असीमित हो!"
   },
   {
-    question: "What should you do if a fire breaks out in your home?",
+    question: "What is the best way to reduce plastic pollution? / प्लास्टिक प्रदूषण घटाउने सबैभन्दा राम्रो उपाय के हो?",
     options: [
-      "Stay low and find a safe exit",
-      "Throw water on an electrical fire",
-      "Run around screaming for help",
-      "Hide under your bed",
-      "Close all doors and windows to trap the fire",
-      "Try to put out the fire with a fan"
+      "Use reusable bags / पुनः प्रयोग गर्न मिल्ने झोला प्रयोग गर्नुहोस्",
+      "Throw plastics in rivers / प्लास्टिकलाई नदीमा फ्याँक्नुहोस्",
+      "Burn plastic waste / प्लास्टिक जलाउनुहोस्",
+      "Use more bottled water / बोतलको पानी धेरै प्रयोग गर्नुहोस्",
+      "Bury plastics underground / प्लास्टिक जमिनमा गाड्नुहोस्",
+      "Ignore plastic waste / प्लास्टिकको फोहोरलाई बेवास्ता गर्नुहोस्"
     ],
-    correctAnswer: "Stay low and find a safe exit",
-    funFact: "Smoke rises, so staying low helps you breathe cleaner air while escaping!"
+    correctAnswer: "Use reusable bags / पुनः प्रयोग गर्न मिल्ने झोला प्रयोग गर्नुहोस्",
+    funFact: "Reusable bags help reduce plastic waste and keep our environment clean. / पुनः प्रयोग हुने झोलाले प्लास्टिक फोहोर कम गर्न मद्दत गर्छ र वातावरण सफा राख्छ।"
   },
   {
-    question: "How can we save water at home?",
+    question: "Which natural disaster is common in the Himalayan region of Nepal? / नेपालको हिमाली क्षेत्रमा कुन प्राकृतिक विपद् सामान्य छ?",
     options: [
-      "Turn off taps when not in use",
-      "Keep taps running all day",
-      "Take very long showers",
-      "Water plants with bottled water only",
-      "Wash clothes one at a time in full buckets",
-      "Use as much water as possible because it's unlimited"
+      "Landslide / पहिरो",
+      "Tsunami / सुनामी",
+      "Volcano / ज्वालामुखी",
+      "Sandstorm / धुलोको हुरी",
+      "Cyclone / चक्रीय आँधी",
+      "Desert flood / मरुभूमिको बाढी"
     ],
-    correctAnswer: "Turn off taps when not in use",
-    funFact: "Saving water helps during dry seasons and prevents shortages!"
+    correctAnswer: "Landslide / पहिरो",
+    funFact: "Landslides often occur in the mountains due to heavy rainfall or earthquakes. / पहिरो प्रायः धेरै वर्षा वा भूकम्पका कारण हिमालमा हुन्छ।"
   },
   {
-    question: "Which of these helps to reduce plastic pollution?",
+    question: "What is the safest action during a lightning storm? / चट्याङ परेको बेला सबैभन्दा सुरक्षित काम के हो?",
     options: [
-      "Using cloth or paper bags instead of plastic bags",
-      "Throwing plastic into rivers",
-      "Burning plastic to make space",
-      "Burying plastic deep underground",
-      "Collecting plastic and throwing it into a bigger pile",
-      "Making all school books out of plastic"
+      "Stay indoors and away from windows / भित्र बस्नुहोस् र झ्यालबाट टाढा रहनुहोस्",
+      "Stand under a tree / रुख मुनि उभिनुहोस्",
+      "Swim in the river / खोलामा पौडिनुहोस्",
+      "Hold a metal rod / फलाम समाउनुहोस्",
+      "Run on an open field / खुला मैदानमा दौडिनुहोस्",
+      "Climb to a high place / अग्लो ठाउँमा जानुहोस्"
     ],
-    correctAnswer: "Using cloth or paper bags instead of plastic bags",
-    funFact: "Plastic takes hundreds of years to decompose, so reducing its use helps the environment!"
+    correctAnswer: "Stay indoors and away from windows / भित्र बस्नुहोस् र झ्यालबाट टाढा रहनुहोस्",
+    funFact: "Lightning often strikes tall objects like trees and poles. / चट्याङ प्रायः अग्ला वस्तुमा लाग्छ।"
   },
   {
-    question: "What is the safest place to be during a thunderstorm?",
+    question: "Why are forests important for the environment? / वातावरणका लागि वन किन आवश्यक छन्?",
     options: [
-      "Inside a strong building",
-      "Under a tall tree",
-      "In the middle of an open field",
-      "On the rooftop of your house",
-      "Holding a metal rod in your hand",
-      "Standing in a swimming pool"
+      "They produce oxygen / अक्सिजन उत्पादन गर्छन्",
+      "They increase pollution / प्रदूषण बढाउँछन्",
+      "They block rivers / खोला रोक्छन्",
+      "They stop rainfall / वर्षा रोक्छन्",
+      "They make noise / आवाज गर्छन्",
+      "They use too much water / धेरै पानी खपत गर्छन्"
     ],
-    correctAnswer: "Inside a strong building",
-    funFact: "Being indoors reduces the risk of being struck by lightning!"
+    correctAnswer: "They produce oxygen / अक्सिजन उत्पादन गर्छन्",
+    funFact: "Forests act as the lungs of the planet. / वन पृथ्वीका फोक्सो हुन्।"
   },
   {
-    question: "What can we do to make Kathmandu cleaner?",
+    question: "What causes floods during heavy rainfall in cities? / शहरमा भारी वर्षाको समयमा बाढी किन आउँछ?",
     options: [
-      "Throw garbage in dustbins",
-      "Throw plastic in the river",
-      "Leave garbage on the streets",
-      "Wait for someone else to clean",
-      "Burn trash on roads",
-      "Hide garbage under your bed"
+      "Blocked drainage / नालीहरू रोकिएको हुन्छ",
+      "Too many trees / धेरै रूखहरू भएकोले",
+      "Cold weather / चिसो मौसमको कारण",
+      "Traffic jams / ट्राफिक जामका कारण",
+      "Sunshine / घाम लागेकाले",
+      "More shops / धेरै पसल भएकाले"
     ],
-    correctAnswer: "Throw garbage in dustbins",
-    funFact: "Proper waste disposal keeps our city clean and healthy!"
+    correctAnswer: "Blocked drainage / नालीहरू रोकिएको हुन्छ",
+    funFact: "Keeping drains clean helps prevent urban floods. / नाली सफा राख्दा शहरमा बाढीबाट जोगिन सकिन्छ।"
   },
   {
-    question: "Why is it important to have an emergency kit at home?",
+    question: "What is global warming? / ग्लोबल वार्मिङ भन्नाले के जनाउँछ?",
     options: [
-      "It helps during disasters like earthquakes and floods",
-      "It is fun to collect random things",
-      "It makes you feel like a superhero",
-      "It’s only for decoration",
-      "It attracts thieves",
-      "It takes up space for no reason"
+      "Earth getting hotter / पृथ्वी तातो हुँदै जानु",
+      "More people on Earth / पृथ्वीमा धेरै मानिस हुनु",
+      "More rain / धेरै वर्षा हुनु",
+      "Less sunshine / कम घाम लाग्नु",
+      "Trees growing faster / रूखहरू छिटो बढ्नु",
+      "Fewer floods / कम बाढी आउनु"
     ],
-    correctAnswer: "It helps during disasters like earthquakes and floods",
-    funFact: "Emergency kits with food, water, and first-aid supplies can save lives!"
+    correctAnswer: "Earth getting hotter / पृथ्वी तातो हुँदै जानु",
+    funFact: "Global warming melts glaciers and raises sea levels. / ग्लोबल वार्मिङले हिउँ पगाल्छ र समुद्र सतह बढाउँछ।"
   },
   {
-    question: "Which of these is a renewable energy source?",
+    question: "What should you include in an emergency kit? / आकस्मिक किटमा के-के राख्नु पर्छ?",
     options: [
-      "Solar power from the sun",
-      "Petrol from cars",
-      "Gas from cooking stoves",
-      "Coal from deep underground",
-      "Plastic waste burned for heat",
-      "Batteries that never run out"
+      "Water and first aid / पानी र प्राथमिक उपचार",
+      "Toys and balloons / खेलौना र फुका",
+      "Smartphone charger only / केवल चार्जर",
+      "Snacks and sunglasses / खाजा र चस्मा",
+      "Fancy clothes / झिलीमिली लुगा",
+      "Paint and brushes / रंग र ब्रश"
     ],
-    correctAnswer: "Solar power from the sun",
-    funFact: "Solar energy is clean and never runs out, unlike fossil fuels!"
+    correctAnswer: "Water and first aid / पानी र प्राथमिक उपचार",
+    funFact: "An emergency kit helps you stay safe during disasters. / आपतकालीन किट विपद् बेला तपाईलाई सुरक्षित राख्छ।"
   },
   {
-    question: "What should you do if you see someone littering?",
+    question: "Which of the following helps prevent soil erosion? / तलमध्ये कुनले माटो बग्नबाट रोक्छ?",
     options: [
-      "Politely remind them to use a dustbin",
-      "Ignore them and walk away",
-      "Join them and throw more trash",
-      "Wait for a government official to stop them",
-      "Take their trash home with you",
-      "Throw your own trash even farther"
+      "Planting trees / रूख रोप्नु",
+      "Throwing garbage / फोहोर फाल्नु",
+      "Burning forests / जंगल जलाउनु",
+      "Building malls / मल निर्माण गर्नु",
+      "Digging rivers / खोला खन्नु",
+      "Paving the land / जमिन पक्की बनाउनु"
     ],
-    correctAnswer: "Politely remind them to use a dustbin",
-    funFact: "Encouraging others to keep the environment clean helps everyone!"
+    correctAnswer: "Planting trees / रूख रोप्नु",
+    funFact: "Tree roots hold the soil in place and prevent erosion. / रूखको जराले माटो समातेर राख्छ।"
   },
   {
-    question: "Why do glaciers in Nepal’s mountains matter?",
+    question: "Which area of Nepal is more prone to landslides? / नेपालको कुन क्षेत्र पहिरोको जोखिममा बढी हुन्छ?",
     options: [
-      "They provide water for rivers",
-      "They are fun places to play",
-      "They make great ice cream factories",
-      "They keep Mount Everest cold",
-      "They protect us from aliens",
-      "They stop the wind from blowing"
+      "Hilly region / पहाडी क्षेत्र",
+      "Terai region / तराई क्षेत्र",
+      "Mountain peaks / हिमाल चुचुरा",
+      "Valleys / उपत्यकाहरू",
+      "Lakes / तालहरू",
+      "Desert areas / मरुभूमि क्षेत्र"
     ],
-    correctAnswer: "They provide water for rivers",
-    funFact: "Melting glaciers affect Nepal’s water supply and can cause floods!"
-  }
+    correctAnswer: "Hilly region / पहाडी क्षेत्र",
+    funFact: "Nepal’s hills are prone to landslides due to steep slopes and rainfall. / नेपालको पहाडमा झुकाव धेरै र वर्षा बढी हुने भएकाले पहिरो बढी आउँछ।"
+  },
+  {
+    question: "Which gas is mainly responsible for climate change? / जलवायु परिवर्तनका लागि मुख्य जिम्मेवार ग्याँस कुन हो?",
+    options: [
+      "Carbon dioxide / कार्बन डाइअक्साइड",
+      "Oxygen / अक्सिजन",
+      "Nitrogen / नाइट्रोजन",
+      "Hydrogen / हाइड्रोजन",
+      "Helium / हीलियम",
+      "Water vapor / जल वाष्प"
+    ],
+    correctAnswer: "Carbon dioxide / कार्बन डाइअक्साइड",
+    funFact: "CO₂ traps heat and warms the planet. / कार्बन डाइअक्साइडले तातो समाएर पृथ्वीलाई तातो बनाउँछ।"
+  },
+  {
+    question: "What should you do if you smell gas leak at home? / घरमा ग्यास गन्हाएमा के गर्नु पर्छ?",
+    options: [
+      "Open all windows and doors / सबै झ्याल ढोका खोल्नुहोस्",
+      "Light a matchstick / सल्काउने प्रयास गर्नुहोस्",
+      "Turn on the fan / पंखा चलाउनुहोस्",
+      "Use your mobile near it / मोबाइल चलाउनुहोस् ग्यास नजिक",
+      "Shout at others / अरूलाई कराउनुहोस्",
+      "Cover your face with a blanket / ओढ्ने ओढेर बस्नुहोस्"
+    ],
+    correctAnswer: "Open all windows and doors / सबै झ्याल ढोका खोल्नुहोस्",
+    funFact: "Fresh air helps to release leaked gas safely. / ताजा हावाले ग्यास बाहिर जान मद्दत गर्छ।"
+  },
+  {
+    question: "Which organization helps with disaster relief in Nepal? / नेपालमा विपद् व्यवस्थापनमा सहयोग गर्ने संस्था कुन हो?",
+    options: [
+      "Nepal Red Cross Society / नेपाल रेडक्रस संस्था",
+      "Cricket Association of Nepal / क्रिकेट संघ",
+      "Film Development Board / चलचित्र बोर्ड",
+      "Nepal Rastra Bank / नेपाल राष्ट्र बैंक",
+      "Nepal Airlines / नेपाल एयरलाइन्स",
+      "Nepal Television / नेपाल टेलिभिजन"
+    ],
+    correctAnswer: "Nepal Red Cross Society / नेपाल रेडक्रस संस्था",
+    funFact: "Nepal Red Cross helps with rescue and emergency supplies. / नेपाल रेडक्रसले उद्धार र राहत सामग्री उपलब्ध गराउँछ।"
+  },
+  {
+    question: "Which one is a man-made cause of climate change? / जलवायु परिवर्तनको मानव-निर्मित कारण कुन हो?",
+    options: [
+      "Burning fossil fuels / इन्धन जलाउनु",
+      "Sun rising in the east / सूर्य पूर्वबाट उग्नु",
+      "Moonlight / जुनको उज्यालो",
+      "Wind blowing / हावा चल्नु",
+      "Rivers flowing / खोलाको बग्ने",
+      "Earthquakes / भूकम्प आउनु"
+    ],
+    correctAnswer: "Burning fossil fuels / इन्धन जलाउनु",
+    funFact: "Burning fuels like coal and petrol releases greenhouse gases. / कोइला र पेट्रोल जलेपछि ग्रीनहाउस ग्याँस निस्कन्छ।"
+  },
+  {
+    question: "Which of the following is an example of disaster preparedness? / तलमध्ये कुन विपद् पूर्वतयारीको उदाहरण हो?",
+    options: [
+      "Doing earthquake drills / भूकम्प अभ्यास गर्नु",
+      "Ignoring weather warnings / मौसम पूर्वानुमान बेवास्ता गर्नु",
+      "Building houses without plans / योजना बिना घर बनाउनु",
+      "Littering in rivers / खोलामा फोहोर फाल्नु",
+      "Cutting trees / रूख काट्नु",
+      "Swimming in flood water / बाढीको पानीमा पौडनु"
+    ],
+    correctAnswer: "Doing earthquake drills / भूकम्प अभ्यास गर्नु",
+    funFact: "Practice makes people ready during real disasters. / अभ्यासले विपद् बेला सजग बनाउँछ।"
+  },
+  {
+    question: "What is a safe place during a thunderstorm? / चट्याङ परेको बेला सुरक्षित ठाउँ कुन हो?",
+    options: [
+      "Inside a concrete building / सिमेन्टको भवन भित्र",
+      "Under a metal pole / फलामे पोलमुनि",
+      "On a rooftop / घरको छतमाथि",
+      "Near a swimming pool / पौडी पोखरी नजिक",
+      "Open playground / खुला खेलमैदान",
+      "Under a tree / रुख मुनि"
+    ],
+    correctAnswer: "Inside a concrete building / सिमेन्टको भवन भित्र",
+    funFact: "Concrete buildings protect you from lightning strikes. / पक्का घरले चट्याङबाट बचाउँछ।"
+  },
+  {
+    question: "What is a glacier? / ग्लेशियर भन्नाले के जनाउँछ?",
+    options: [
+      "Large body of moving ice / बग्ने ठूलो हिउँ",
+      "Sand dune / बालुवाको ढिस्को",
+      "Hill made of stones / ढुङ्गाको पहाड",
+      "River full of water / पानीले भरिएको खोला",
+      "Lake without water / पानी नभएको ताल",
+      "Snowman / हिउँ मान्छे"
+    ],
+    correctAnswer: "Large body of moving ice / बग्ने ठूलो हिउँ",
+    funFact: "Nepal has many glaciers in the Himalayas. / नेपालका हिमालमा धेरै ग्लेशियर छन्।"
+  },
+  {
+    question: "What is the best way to reduce climate change? / जलवायु परिवर्तन घटाउने सबैभन्दा राम्रो उपाय कुन हो?",
+    options: [
+      "Use clean energy like solar / सौर्य जस्ता सफा ऊर्जा प्रयोग गर्नु",
+      "Use more cars / धेरै गाडी प्रयोग गर्नु",
+      "Cut all trees / सबै रूख काट्नु",
+      "Burn garbage / फोहोर जलाउनु",
+      "Avoid planting anything / केही पनि नरोप्नु",
+      "Waste electricity / बिजुली फाल्नु"
+    ],
+    correctAnswer: "Use clean energy like solar / सौर्य जस्ता सफा ऊर्जा प्रयोग गर्नु",
+    funFact: "Solar and wind energy reduce pollution and protect the Earth. / सौर्य र हावाबाट उत्पन्न उर्जाले प्रदूषण घटाउँछ।"
+  },
+  {
+    question: "Which one is a renewable source of energy? / तलमध्ये कुन नवीकरणीय ऊर्जा स्रोत हो?",
+    options: [
+      "Solar energy / सौर्य ऊर्जा",
+      "Petrol / पेट्रोल",
+      "Coal / कोइला",
+      "Natural gas / प्राकृतिक ग्याँस",
+      "Diesel / डिजेल",
+      "Plastic / प्लास्टिक"
+    ],
+    correctAnswer: "Solar energy / सौर्य ऊर्जा",
+    funFact: "Renewable energy sources never run out! / नवीकरणीय ऊर्जा स्रोत कहिल्यै सकिँदैनन्!"
+  },
+  {
+    question: "What can happen if there is too much rain for many days? / धेरै दिनसम्म धेरै वर्षा भयो भने के हुन सक्छ?",
+    options: [
+      "Flood / बाढी",
+      "Drought / खडेरी",
+      "Earthquake / भूकम्प",
+      "Volcano / ज्वालामुखी",
+      "Snowfall / हिमपात",
+      "Tsunami / सुनामी"
+    ],
+    correctAnswer: "Flood / बाढी",
+    funFact: "Too much rain can overflow rivers and flood areas. / धेरै पानीले नदी नदाहरू बगेर बाढी आउन सक्छ।"
+  },
+  {
+    question: "What can you do to help the Earth? / पृथ्वीलाई जोगाउन तपाईंले के गर्न सक्नुहुन्छ?",
+    options: [
+      "Plant trees / रूख रोप्नु",
+      "Waste water / पानी फाल्नु",
+      "Use plastic bags / प्लास्टिक झोला प्रयोग गर्नु",
+      "Throw trash anywhere / जहाँतही फोहोर फाल्नु",
+      "Burn tires / टायर जलाउनु",
+      "Cut down forests / जङ्गल काट्नु"
+    ],
+    correctAnswer: "Plant trees / रूख रोप्नु",
+    funFact: "Trees absorb CO₂ and keep the planet cool. / रूखले CO₂ सोस्छ र पृथ्वी चिसो राख्छ।"
+  },
+  {
+    question: "Which animals are losing homes due to melting glaciers? / ग्लेशियर पग्लँदा कुन जनावरको बासस्थान हराउँदैछ?",
+    options: [
+      "Snow leopards / हिउँ चितुवा",
+      "Lions / सिंह",
+      "Elephants / हात्ती",
+      "Peacocks / मयूर",
+      "Zebras / जेब्रा",
+      "Cows / गाई"
+    ],
+    correctAnswer: "Snow leopards / हिउँ चितुवा",
+    funFact: "Melting glaciers are threatening snow leopards’ habitats in the Himalayas. / ग्लेशियर पग्लँदा हिमाली क्षेत्रका हिउँ चितुवाको बासस्थान हराउँदैछ।"
+  },
+  {
+    question: "Why should we save electricity? / हामीले बिजुली किन बचाउनु पर्छ?",
+    options: [
+      "To reduce pollution / प्रदूषण घटाउन",
+      "To make lights more colorful / बत्ती रंगीन बनाउन",
+      "So we can sleep more / धेरै सुत्न",
+      "To get more homework / बढी गृहकार्य पाउन",
+      "Because it’s fun / किनभने रमाइलो हुन्छ",
+      "So we can shout louder / ठूलो आवाजमा कराउन"
+    ],
+    correctAnswer: "To reduce pollution / प्रदूषण घटाउन",
+    funFact: "Saving electricity means less burning of fuels and less air pollution. / बिजुली बचाउँदा इन्धन कम बालिन्छ र हावा कम प्रदूषित हुन्छ।"
+  },
+  {
+    question: "What is a disaster management plan? / विपद् व्यवस्थापन योजना भनेको के हो?",
+    options: [
+      "Plan to stay safe during disasters / विपद् आउँदा सुरक्षित रहने योजना",
+      "Plan for a birthday party / जन्मदिनको योजना",
+      "Plan to skip school / स्कुल नजाने योजना",
+      "Plan to play video games / भिडियो गेम खेल्ने योजना",
+      "Plan to go shopping / किनमेलको योजना",
+      "Plan to sleep all day / दिनभर सुत्ने योजना"
+    ],
+    correctAnswer: "Plan to stay safe during disasters / विपद् आउँदा सुरक्षित रहने योजना",
+    funFact: "Having a plan saves lives during emergencies. / योजना तयार हुँदा आपत् बेला जीवन जोगिन सक्छ।"
+  },
+  {
+    question: "What should you do if you are caught in a flood? / यदि तपाईं बाढीमा अड्किनुभयो भने के गर्नु पर्छ?",
+    options: [
+      "Climb to higher ground / उच्च स्थानमा चढ्नु",
+      "Swim in the floodwater / बाढीको पानीमा पौडी खेल्नु",
+      "Wait in the water / पानीमा पर्खनु",
+      "Go outside and play / बाहिर जानु र खेल्नू",
+      "Run into the water / पानीमा दौडिनु",
+      "Call friends to join you / साथीलाई बोलाउनु"
+    ],
+    correctAnswer: "Climb to higher ground / उच्च स्थानमा चढ्नु",
+    funFact: "Staying in high ground helps avoid floodwaters. / उच्च स्थानमा बस्दा बाढीको पानीबाट जोगिन सकिन्छ।"
+  },
+  {
+    question: "What is a cyclone? / चक्रीवात भनेको के हो?",
+    options: [
+      "A strong wind storm / एक बलियो हावाहुरी",
+      "A heavy rain storm / एक भारी वर्षाका बादल",
+      "A type of snowstorm / हिमपातको प्रकार",
+      "A gentle breeze / एक सौम्य हावा",
+      "A cloud in the sky / आकाशमा बादल",
+      "A small whirlpool / सानो घुम्ने पानी"
+    ],
+    correctAnswer: "A strong wind storm / एक बलियो हावाहुरी",
+    funFact: "Cyclones can cause heavy damage to homes and trees. / चक्रीवातले घर र रूखलाई धेरै क्षति पुर्याउन सक्छ।"
+  },
+  {
+    question: "What should you do before a flood arrives? / बाढी आउनु भन्दा पहिले के गर्नु पर्छ?",
+    options: [
+      "Prepare an emergency kit / आपतकालीन सामान तयारी गर्नु",
+      "Leave your home / तपाईंको घर जानु",
+      "Ignore warnings / चेतावनी बेवास्ता गर्नु",
+      "Go swimming / पौडी खेल्न जानु",
+      "Pack your things to go shopping / किनमेल जानका लागि सामान प्याक गर्नु",
+      "Dance in the rain / वर्षामा नाच्नु"
+    ],
+    correctAnswer: "Prepare an emergency kit / आपतकालीन सामान तयारी गर्नु",
+    funFact: "Having an emergency kit can save your life during disasters. / आपतकालीन किट राख्दा विपद् बेला ज्यान जोगाउन सक्छ।"
+  },
+  {
+    question: "Which of the following can help prevent global warming? / तलको कुन चिजले विश्वव्यापी तातो बढ्ने समस्यालाई रोक्न मद्दत पुर्याउँछ?",
+    options: [
+      "Planting trees / रूखहरू रोप्नु",
+      "Using more plastic / बढी प्लास्टिक प्रयोग गर्नु",
+      "Burning coal / कोइला बाल्नु",
+      "Cutting forests / जङ्गल काट्नु",
+      "Driving cars all the time / सधैँ गाडी चलाउनु",
+      "Wasting water / पानी फाल्नु"
+    ],
+    correctAnswer: "Planting trees / रूखहरू रोप्नु",
+    funFact: "Trees absorb carbon dioxide and help cool the Earth. / रूखहरूले कार्बन डाइअक्साइड सोस्छ र पृथ्वी चिसो राख्न मद्दत गर्छ।"
+  },
+  {
+    question: "What is the main cause of climate change? / जलवायु परिवर्तनको मुख्य कारण के हो?",
+    options: [
+      "Pollution from factories / कारखानाबाट प्रदूषण",
+      "Using renewable energy / नवीकरणीय ऊर्जा प्रयोग गर्नु",
+      "Eating vegetables / तरकारी खाना",
+      "Drinking clean water / सफा पानी पिउनु",
+      "Walking instead of driving / गाडी चलाउनुको सट्टा हिँड्नु",
+      "Reducing plastic use / प्लास्टिकको प्रयोग घटाउनु"
+    ],
+    correctAnswer: "Pollution from factories / कारखानाबाट प्रदूषण",
+    funFact: "Factories release gases that trap heat, causing global warming. / कारखानाबाट निस्कने ग्यासले तातो समेट्छ र विश्वव्यापी तातो बढाउँछ।"
+  },
+  {
+    question: "What is a safe place to go during an earthquake? / भूकम्पको समयमा कहाँ जानु सुरक्षित हुन्छ?",
+    options: [
+      "Under a table / मेचु निचे",
+      "Near windows / झ्यालको नजिक",
+      "On top of a tall building / अग्लो भवनको माथि",
+      "Outside on the street / सडकमा बाहिर",
+      "In the middle of a big open field / ठूलो खुला खेतको बीचमा",
+      "In an elevator / लिफ्टमा"
+    ],
+    correctAnswer: "Under a table / मेचु निचे",
+    funFact: "Taking shelter under furniture can protect you from falling debris. / फर्निचरको मुनि लुकेर तपाईंले ढल्ने सामानबाट सुरक्षा पाउन सक्नुहुन्छ।"
+  },
+  {
+    question: "What is the safest thing to do during a cyclone? / चक्रीवातको समयमा के सबैभन्दा सुरक्षित कुरा गर्नु पर्छ?",
+    options: [
+      "Stay indoors and stay away from windows / घरको भित्र बस्नु र झ्यालबाट टाढा रहनु",
+      "Go outside and play / बाहिर जानु र खेल्नू",
+      "Swim in the storm / आँधीमा पौडी खेल्नु",
+      "Stand under a tree / रूखको मुनि उभिनु",
+      "Drive through the storm / आँधीको बीचमा गाडी चलाउनु",
+      "Climb a hill / पहाड चढ्नु"
+    ],
+    correctAnswer: "Stay indoors and stay away from windows / घरको भित्र बस्नु र झ्यालबाट टाढा रहनु",
+    funFact: "Cyclones bring strong winds and flying debris, so staying indoors is safest. / चक्रीवातले बलियो हावा र उडिरहेका सामान ल्याउँछ, त्यसैले घर भित्र बस्नु सुरक्षित हुन्छ।"
+  },
+  {
+    question: "What can you do to help during a disaster? / विपद्को समयमा तपाईं के सहयोग गर्न सक्नुहुन्छ?",
+    options: [
+      "Help others by giving food and water / अरूलाई खाना र पानी दिई सहयोग गर्नु",
+      "Ignore the situation / परिस्थितिलाई बेवास्ता गर्नु",
+      "Create more problems / थप समस्या सिर्जना गर्नु",
+      "Take pictures and post on social media / तस्वीर खिचेर सोसल मिडियामा पोष्ट गर्नु",
+      "Run away from the disaster zone / विपद्को क्षेत्रबाट भाग्नु",
+      "Stay calm and do nothing / शान्त बस्नु र केही नगर्नु"
+    ],
+    correctAnswer: "Help others by giving food and water / अरूलाई खाना र पानी दिई सहयोग गर्नु",
+    funFact: "Helping others in times of need can save lives. / अरूलाई सहयोग गर्दा ज्यान जोगाउन सकिन्छ।"
+  },
 ];
 
 const TeamSetup = ({ onStart }) => {
@@ -299,22 +584,18 @@ const QuizGame = ({ teams, onFinish }) => {
   const [timeLeft, setTimeLeft] = useState(60);
   const [timerActive, setTimerActive] = useState(true);
   const [originalTeam, setOriginalTeam] = useState(0);
-  const [playedWarningSound, setPlayedWarningSound] = useState(false);
   const timerRef = useRef(null);
   
-  // Audio references
-  const timesUpAudioRef = useRef(new Audio(SOUNDS.timesUp));
   const correctAudioRef = useRef(new Audio(SOUNDS.correct));
   const wrongAudioRef = useRef(new Audio(SOUNDS.wrong));
 
-  // Initialize audio
   useEffect(() => {
-    [timesUpAudioRef.current, correctAudioRef.current, wrongAudioRef.current].forEach(audio => {
+    [correctAudioRef.current, wrongAudioRef.current].forEach(audio => {
       audio.volume = 0.3;
     });
 
     return () => {
-      [timesUpAudioRef.current, correctAudioRef.current, wrongAudioRef.current].forEach(audio => {
+      [correctAudioRef.current, wrongAudioRef.current].forEach(audio => {
         audio.pause();
         audio.currentTime = 0;
       });
@@ -322,11 +603,7 @@ const QuizGame = ({ teams, onFinish }) => {
   }, []);
 
   const playSound = (type) => {
-    const audio = 
-      type === 'timesUp' ? timesUpAudioRef.current :
-      type === 'correct' ? correctAudioRef.current :
-      wrongAudioRef.current;
-    
+    const audio = type === 'correct' ? correctAudioRef.current : wrongAudioRef.current;
     audio.currentTime = 0;
     audio.play().catch(e => console.log("Audio play failed:", e));
   };
@@ -334,7 +611,6 @@ const QuizGame = ({ teams, onFinish }) => {
   const startTimer = (duration) => {
     setTimeLeft(duration);
     setTimerActive(true);
-    setPlayedWarningSound(false);
   };
 
   const stopTimer = () => {
@@ -349,12 +625,6 @@ const QuizGame = ({ teams, onFinish }) => {
     if (timerActive) {
       timerRef.current = setInterval(() => {
         setTimeLeft(prevTime => {
-          // Play warning sound at 9 seconds remaining (when prevTime is 10)
-          if (currentTeam === originalTeam && prevTime === 10 && !playedWarningSound) {
-            playSound('timesUp');
-            setPlayedWarningSound(true);
-          }
-          
           if (prevTime <= 1) {
             clearInterval(timerRef.current);
             handleTimeUp();
@@ -370,7 +640,7 @@ const QuizGame = ({ teams, onFinish }) => {
         clearInterval(timerRef.current);
       }
     };
-  }, [timerActive, currentTeam, originalTeam, playedWarningSound]);
+  }, [timerActive, currentTeam]);
 
   useEffect(() => {
     startTimer(60);
@@ -378,22 +648,27 @@ const QuizGame = ({ teams, onFinish }) => {
   }, [currentQuestion]);
 
   const handleTimeUp = () => {
-    // Only play final time-up sound if warning hasn't played
-    if (!playedWarningSound) {
-      playSound('timesUp');
-    }
     setTimerActive(false);
     setShowAnswer(true);
     setIsCorrect(false);
     setSelectedAnswer('Time Up!');
     
     setTimeout(() => {
-      if (currentQuestion < quizQuestions.length - 1) {
-        nextQuestion();
+      const nextTeam = (currentTeam + 1) % teams.length;
+      
+      if (nextTeam === originalTeam) {
+        if (currentQuestion < quizQuestions.length - 1) {
+          nextQuestion();
+        } else {
+          endGame();
+        }
       } else {
-        endGame();
+        setCurrentTeam(nextTeam);
+        setShowAnswer(false);
+        setSelectedAnswer('');
+        startTimer(35);
       }
-    }, 2000);
+    }, 4000);
   };
 
   const handleAnswerClick = (answer) => {
@@ -414,7 +689,7 @@ const QuizGame = ({ teams, onFinish }) => {
         } else {
           endGame();
         }
-      }, 2000);
+      }, 4000);
     } else {
       playSound('wrong');
       setIsCorrect(false);
@@ -436,7 +711,7 @@ const QuizGame = ({ teams, onFinish }) => {
             } else {
               endGame();
             }
-          }, 2000);
+          }, 4000);
         } else {
           startTimer(35);
         }
@@ -519,15 +794,12 @@ const QuizGame = ({ teams, onFinish }) => {
   return (
     <div className="min-h-screen p-4">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Team Info */}
         <div className="lg:col-span-1 space-y-6">
-          {/* Current Team */}
           <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl shadow-xl p-6 text-white">
             <div className="text-sm font-medium mb-1">Current Team</div>
             <div className="text-2xl font-bold mb-2">{teams[currentTeam].name}</div>
             <div className="text-sm opacity-90 mb-4">{teams[currentTeam].members}</div>
             
-            {/* Timer */}
             <div className="flex items-center justify-between bg-blue-900 bg-opacity-30 rounded-lg p-3">
               <div className="flex items-center">
                 <Clock className="w-5 h-5 mr-2" />
@@ -541,7 +813,6 @@ const QuizGame = ({ teams, onFinish }) => {
             </div>
           </div>
           
-          {/* Scoreboard */}
           <div className="bg-white rounded-2xl shadow-xl p-6">
             <h3 className="text-xl font-bold text-gray-800 mb-4">Scoreboard</h3>
             <div className="space-y-3">
@@ -561,7 +832,6 @@ const QuizGame = ({ teams, onFinish }) => {
           </div>
         </div>
         
-        {/* Right Column - Quiz Questions */}
         <div className="lg:col-span-2">
           <div className={`bg-white rounded-2xl shadow-xl p-6 h-full transform transition-transform ${shake ? 'animate-shake' : ''}`}>
             <div className="flex justify-between items-center mb-6">
@@ -573,7 +843,6 @@ const QuizGame = ({ teams, onFinish }) => {
               </div>
             </div>
             
-            {/* Progress Bar */}
             <div className="w-full bg-gray-200 rounded-full h-3 mb-6 overflow-hidden">
               <div 
                 className="bg-gradient-to-r from-blue-600 to-green-600 h-3 rounded-full transition-all duration-1000 ease-in-out"
@@ -609,7 +878,6 @@ const QuizGame = ({ teams, onFinish }) => {
               </div>
             </div>
 
-            {/* Feedback Messages */}
             {showAnswer && (
               <Alert className={`rounded-xl mb-4 transform transition-all duration-300 ${
                 isCorrect ? 'bg-green-100 border-green-500 animate-bounce' : 
@@ -629,7 +897,7 @@ const QuizGame = ({ teams, onFinish }) => {
                     <Clock className="h-5 w-5 text-purple-600 mr-2 animate-pulse" />
                     <AlertDescription>
                       <span className="font-bold">Time's Up! ⏰ </span>
-                      The correct answer was: {quizQuestions[currentQuestion].correctAnswer}
+                      Passing to next team...
                     </AlertDescription>
                   </div>
                 ) : selectedAnswer === 'No team answered correctly!' ? (
@@ -684,9 +952,6 @@ const Quiz = () => {
 };
 
 export default Quiz;
-
-
-
 
 
 
