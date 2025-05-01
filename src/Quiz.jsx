@@ -1,3 +1,2191 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { AlertCircle, CheckCircle2, ChevronRight, Cloud, Sun, Zap, Trophy, Users, Plus, X, Clock, ChevronLeft } from 'lucide-react';
+import { Alert, AlertDescription } from './components/ui/alert';
+
+const SOUNDS = {
+  timesUp: '/sounds/times-up.wav',
+  correct: '/sounds/correct.wav',
+  wrong: '/sounds/wrong.wav'
+};
+
+const quizQuestions = [
+  {
+    question: "What should you do if an earthquake happens while you are inside your classroom?",
+    options: [
+      "Take cover under your desk",
+      "Run outside immediately",
+      "Stand near a window and watch",
+      "Jump up and down",
+      "Call your friends to take selfies",
+      "Throw your books at the shaking walls"
+    ],
+    correctAnswer: "Take cover under your desk",
+    funFact: "Hiding under a desk protects you from falling objects during an earthquake!"
+  },
+  {
+    question: "How can we reduce air pollution in Kathmandu?",
+    options: [
+      "Use bicycles or walk instead of riding cars",
+      "Burn plastic and garbage to make the air warm",
+      "Cut down all trees to create open space",
+      "Keep factories running 24/7 with no filters",
+      "Only wear masks but do nothing else",
+      "Blow a fan towards the sky to push pollution away"
+    ],
+    correctAnswer: "Use bicycles or walk instead of riding cars",
+    funFact: "Fewer cars on the road mean cleaner air for everyone!"
+  },
+  {
+    question: "What is the best way to prepare for floods in Nepal?",
+    options: [
+      "Build houses on higher ground",
+      "Store all your things in the basement",
+      "Make paper boats and float on the water",
+      "Wait for the water to disappear on its own",
+      "Dig holes to hide from the water",
+      "Collect the floodwater in buckets"
+    ],
+    correctAnswer: "Build houses on higher ground",
+    funFact: "Living on higher ground keeps people safe from rising floodwaters!"
+  },
+  {
+    question: "Why do we need to plant more trees?",
+    options: [
+      "They clean the air and give us oxygen",
+      "They make our playgrounds messy",
+      "They create more shade for sleeping",
+      "They scare away birds",
+      "They stop Wi-Fi signals",
+      "They take up too much space"
+    ],
+    correctAnswer: "They clean the air and give us oxygen",
+    funFact: "Trees absorb carbon dioxide and help fight climate change!"
+  },
+  {
+    question: "What should you do if a fire breaks out in your home?",
+    options: [
+      "Stay low and find a safe exit",
+      "Throw water on an electrical fire",
+      "Run around screaming for help",
+      "Hide under your bed",
+      "Close all doors and windows to trap the fire",
+      "Try to put out the fire with a fan"
+    ],
+    correctAnswer: "Stay low and find a safe exit",
+    funFact: "Smoke rises, so staying low helps you breathe cleaner air while escaping!"
+  },
+  {
+    question: "How can we save water at home?",
+    options: [
+      "Turn off taps when not in use",
+      "Keep taps running all day",
+      "Take very long showers",
+      "Water plants with bottled water only",
+      "Wash clothes one at a time in full buckets",
+      "Use as much water as possible because it's unlimited"
+    ],
+    correctAnswer: "Turn off taps when not in use",
+    funFact: "Saving water helps during dry seasons and prevents shortages!"
+  },
+  {
+    question: "Which of these helps to reduce plastic pollution?",
+    options: [
+      "Using cloth or paper bags instead of plastic bags",
+      "Throwing plastic into rivers",
+      "Burning plastic to make space",
+      "Burying plastic deep underground",
+      "Collecting plastic and throwing it into a bigger pile",
+      "Making all school books out of plastic"
+    ],
+    correctAnswer: "Using cloth or paper bags instead of plastic bags",
+    funFact: "Plastic takes hundreds of years to decompose, so reducing its use helps the environment!"
+  },
+  {
+    question: "What is the safest place to be during a thunderstorm?",
+    options: [
+      "Inside a strong building",
+      "Under a tall tree",
+      "In the middle of an open field",
+      "On the rooftop of your house",
+      "Holding a metal rod in your hand",
+      "Standing in a swimming pool"
+    ],
+    correctAnswer: "Inside a strong building",
+    funFact: "Being indoors reduces the risk of being struck by lightning!"
+  },
+  {
+    question: "What can we do to make Kathmandu cleaner?",
+    options: [
+      "Throw garbage in dustbins",
+      "Throw plastic in the river",
+      "Leave garbage on the streets",
+      "Wait for someone else to clean",
+      "Burn trash on roads",
+      "Hide garbage under your bed"
+    ],
+    correctAnswer: "Throw garbage in dustbins",
+    funFact: "Proper waste disposal keeps our city clean and healthy!"
+  },
+  {
+    question: "Why is it important to have an emergency kit at home?",
+    options: [
+      "It helps during disasters like earthquakes and floods",
+      "It is fun to collect random things",
+      "It makes you feel like a superhero",
+      "It’s only for decoration",
+      "It attracts thieves",
+      "It takes up space for no reason"
+    ],
+    correctAnswer: "It helps during disasters like earthquakes and floods",
+    funFact: "Emergency kits with food, water, and first-aid supplies can save lives!"
+  },
+  {
+    question: "Which of these is a renewable energy source?",
+    options: [
+      "Solar power from the sun",
+      "Petrol from cars",
+      "Gas from cooking stoves",
+      "Coal from deep underground",
+      "Plastic waste burned for heat",
+      "Batteries that never run out"
+    ],
+    correctAnswer: "Solar power from the sun",
+    funFact: "Solar energy is clean and never runs out, unlike fossil fuels!"
+  },
+  {
+    question: "What should you do if you see someone littering?",
+    options: [
+      "Politely remind them to use a dustbin",
+      "Ignore them and walk away",
+      "Join them and throw more trash",
+      "Wait for a government official to stop them",
+      "Take their trash home with you",
+      "Throw your own trash even farther"
+    ],
+    correctAnswer: "Politely remind them to use a dustbin",
+    funFact: "Encouraging others to keep the environment clean helps everyone!"
+  },
+  {
+    question: "Why do glaciers in Nepal’s mountains matter?",
+    options: [
+      "They provide water for rivers",
+      "They are fun places to play",
+      "They make great ice cream factories",
+      "They keep Mount Everest cold",
+      "They protect us from aliens",
+      "They stop the wind from blowing"
+    ],
+    correctAnswer: "They provide water for rivers",
+    funFact: "Melting glaciers affect Nepal’s water supply and can cause floods!"
+  }
+];
+
+const TeamSetup = ({ onStart }) => {
+  const [teams, setTeams] = useState([{ name: '', members: '' }]);
+  const [error, setError] = useState('');
+
+  const handleTeamChange = (index, field, value) => {
+    const updatedTeams = [...teams];
+    updatedTeams[index][field] = value;
+    setTeams(updatedTeams);
+  };
+
+  const addTeam = () => {
+    if (teams.length < 5) {
+      setTeams([...teams, { name: '', members: '' }]);
+    }
+  };
+
+  const removeTeam = (index) => {
+    if (teams.length > 1) {
+      const updatedTeams = teams.filter((_, i) => i !== index);
+      setTeams(updatedTeams);
+    }
+  };
+
+  const startQuiz = () => {
+    const incompleteTeams = teams.some(team => !team.name.trim() || !team.members.trim());
+    if (incompleteTeams) {
+      setError('Please fill in all team names and members');
+      return;
+    }
+    setError('');
+    onStart(teams);
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-8 animate-slide-in">
+      <h2 className="text-3xl font-bold text-gray-800 mb-8 flex items-center justify-center">
+        <Users className="mr-3 w-8 h-8 text-blue-600" /> Team Setup
+      </h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {teams.map((team, index) => (
+          <div key={index} className="p-6 border-2 border-blue-100 rounded-xl bg-gradient-to-br from-blue-50 to-white relative">
+            {teams.length > 1 && (
+              <button 
+                onClick={() => removeTeam(index)}
+                className="absolute top-3 right-3 text-red-500 hover:text-red-700 bg-white rounded-full p-1 shadow"
+              >
+                <X size={18} />
+              </button>
+            )}
+            
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Team {index + 1} Name
+              </label>
+              <input
+                type="text"
+                value={team.name}
+                onChange={(e) => handleTeamChange(index, 'name', e.target.value)}
+                className="w-full p-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                placeholder={`Team ${index + 1} name`}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Team Members
+              </label>
+              <input
+                type="text"
+                value={team.members}
+                onChange={(e) => handleTeamChange(index, 'members', e.target.value)}
+                className="w-full p-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                placeholder="Member 1, Member 2, ..."
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <div className="flex justify-between items-center">
+        {teams.length < 5 && (
+          <button
+            onClick={addTeam}
+            className="flex items-center text-blue-600 hover:text-blue-800 font-medium px-4 py-2 rounded-lg bg-blue-50 transition-colors"
+          >
+            <Plus size={18} className="mr-2" /> Add Team
+          </button>
+        )}
+        
+        <div className="flex-1"></div>
+        
+        <button
+          onClick={startQuiz}
+          className="flex items-center bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white py-3 px-6 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl"
+        >
+          Start Quiz <ChevronRight className="ml-2 w-5 h-5" />
+        </button>
+      </div>
+      
+      {error && (
+        <div className="mt-4 text-red-500 text-center font-medium">{error}</div>
+      )}
+    </div>
+  );
+};
+
+const QuizGame = ({ teams, onFinish }) => {
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState('');
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [scores, setScores] = useState(teams.map(() => 0));
+  const [currentTeam, setCurrentTeam] = useState(0);
+  const [shake, setShake] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [timerActive, setTimerActive] = useState(true);
+  const [originalTeam, setOriginalTeam] = useState(0);
+  const [playedWarningSound, setPlayedWarningSound] = useState(false);
+  const timerRef = useRef(null);
+  
+  // Audio references
+  const timesUpAudioRef = useRef(new Audio(SOUNDS.timesUp));
+  const correctAudioRef = useRef(new Audio(SOUNDS.correct));
+  const wrongAudioRef = useRef(new Audio(SOUNDS.wrong));
+
+  // Initialize audio
+  useEffect(() => {
+    [timesUpAudioRef.current, correctAudioRef.current, wrongAudioRef.current].forEach(audio => {
+      audio.volume = 0.3;
+    });
+
+    return () => {
+      [timesUpAudioRef.current, correctAudioRef.current, wrongAudioRef.current].forEach(audio => {
+        audio.pause();
+        audio.currentTime = 0;
+      });
+    };
+  }, []);
+
+  const playSound = (type) => {
+    const audio = 
+      type === 'timesUp' ? timesUpAudioRef.current :
+      type === 'correct' ? correctAudioRef.current :
+      wrongAudioRef.current;
+    
+    audio.currentTime = 0;
+    audio.play().catch(e => console.log("Audio play failed:", e));
+  };
+
+  const startTimer = (duration) => {
+    setTimeLeft(duration);
+    setTimerActive(true);
+    setPlayedWarningSound(false);
+  };
+
+  const stopTimer = () => {
+    setTimerActive(false);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    if (timerActive) {
+      timerRef.current = setInterval(() => {
+        setTimeLeft(prevTime => {
+          // Play warning sound at 9 seconds remaining (when prevTime is 10)
+          if (currentTeam === originalTeam && prevTime === 10 && !playedWarningSound) {
+            playSound('timesUp');
+            setPlayedWarningSound(true);
+          }
+          
+          if (prevTime <= 1) {
+            clearInterval(timerRef.current);
+            handleTimeUp();
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [timerActive, currentTeam, originalTeam, playedWarningSound]);
+
+  useEffect(() => {
+    startTimer(60);
+    setOriginalTeam(currentTeam);
+  }, [currentQuestion]);
+
+  const handleTimeUp = () => {
+    // Only play final time-up sound if warning hasn't played
+    if (!playedWarningSound) {
+      playSound('timesUp');
+    }
+    setTimerActive(false);
+    setShowAnswer(true);
+    setIsCorrect(false);
+    setSelectedAnswer('Time Up!');
+    
+    setTimeout(() => {
+      if (currentQuestion < quizQuestions.length - 1) {
+        nextQuestion();
+      } else {
+        endGame();
+      }
+    }, 2000);
+  };
+
+  const handleAnswerClick = (answer) => {
+    stopTimer();
+    setSelectedAnswer(answer);
+    setShowAnswer(true);
+    
+    if (answer === quizQuestions[currentQuestion].correctAnswer) {
+      playSound('correct');
+      setIsCorrect(true);
+      const newScores = [...scores];
+      newScores[currentTeam] += 1;
+      setScores(newScores);
+      
+      setTimeout(() => {
+        if (currentQuestion < quizQuestions.length - 1) {
+          nextQuestion();
+        } else {
+          endGame();
+        }
+      }, 2000);
+    } else {
+      playSound('wrong');
+      setIsCorrect(false);
+      setShake(true);
+      setTimeout(() => {
+        setShake(false);
+        setShowAnswer(false);
+        setSelectedAnswer('');
+        const nextTeam = (currentTeam + 1) % teams.length;
+        setCurrentTeam(nextTeam);
+        
+        if (nextTeam === originalTeam) {
+          setShowAnswer(true);
+          setIsCorrect(false);
+          setSelectedAnswer('No team answered correctly!');
+          setTimeout(() => {
+            if (currentQuestion < quizQuestions.length - 1) {
+              nextQuestion();
+            } else {
+              endGame();
+            }
+          }, 2000);
+        } else {
+          startTimer(35);
+        }
+      }, 1000);
+    }
+  };
+
+  const nextQuestion = () => {
+    setCurrentQuestion(currentQuestion + 1);
+    setSelectedAnswer('');
+    setShowAnswer(false);
+    setIsCorrect(false);
+    setCurrentTeam((currentTeam + 1) % teams.length);
+  };
+
+  const endGame = () => {
+    setGameOver(true);
+  };
+
+  const resetGame = () => {
+    onFinish();
+  };
+
+  if (gameOver) {
+    const maxScore = Math.max(...scores);
+    const winningTeams = teams.filter((_, index) => scores[index] === maxScore);
+    
+    return (
+      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-8 animate-slide-in">
+        <h2 className="text-3xl font-bold text-gray-800 mb-8 flex items-center justify-center">
+          <Trophy className="mr-3 w-8 h-8 text-yellow-500" /> Quiz Results
+        </h2>
+        
+        <div className="mb-8">
+          <h3 className="text-2xl font-semibold mb-6 text-center text-gray-700">
+            {winningTeams.length > 1 ? "It's a tie!" : "We have a winner!"}
+          </h3>
+          
+          {winningTeams.map((team, index) => (
+            <div key={index} className="bg-gradient-to-r from-yellow-100 to-yellow-50 border-l-8 border-yellow-500 p-6 mb-6 rounded-r-lg shadow-md">
+              <h4 className="font-bold text-2xl text-yellow-800">{team.name}</h4>
+              <p className="text-yellow-700 text-lg">{team.members}</p>
+              <p className="font-bold mt-3 text-xl">Score: {maxScore}/{quizQuestions.length}</p>
+            </div>
+          ))}
+        </div>
+        
+        <div className="mb-8">
+          <h4 className="font-semibold text-xl mb-4 text-center">All Teams:</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {teams.map((team, index) => (
+              <div 
+                key={index} 
+                className={`p-4 rounded-xl shadow-sm ${scores[index] === maxScore ? 'bg-yellow-50 border-2 border-yellow-300' : 'bg-gray-50 border border-gray-200'}`}
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="font-medium text-lg">{team.name}</span>
+                    <p className="text-sm text-gray-600">{team.members}</p>
+                  </div>
+                  <span className="font-bold text-xl">{scores[index]} points</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="flex justify-center">
+          <button
+            onClick={resetGame}
+            className="flex items-center bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white py-3 px-8 rounded-lg font-semibold text-lg transition-all shadow-lg hover:shadow-xl"
+          >
+            <ChevronLeft className="mr-2 w-5 h-5" /> Play Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen p-4">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Team Info */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Current Team */}
+          <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl shadow-xl p-6 text-white">
+            <div className="text-sm font-medium mb-1">Current Team</div>
+            <div className="text-2xl font-bold mb-2">{teams[currentTeam].name}</div>
+            <div className="text-sm opacity-90 mb-4">{teams[currentTeam].members}</div>
+            
+            {/* Timer */}
+            <div className="flex items-center justify-between bg-blue-900 bg-opacity-30 rounded-lg p-3">
+              <div className="flex items-center">
+                <Clock className="w-5 h-5 mr-2" />
+                <span className="font-mono text-xl">
+                  {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+                </span>
+              </div>
+              <div className="text-sm">
+                {currentTeam === originalTeam ? "First Chance" : "Pass Chance"}
+              </div>
+            </div>
+          </div>
+          
+          {/* Scoreboard */}
+          <div className="bg-white rounded-2xl shadow-xl p-6">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Scoreboard</h3>
+            <div className="space-y-3">
+              {teams.map((team, index) => (
+                <div 
+                  key={index} 
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all ${index === currentTeam ? 'bg-blue-100 border-2 border-blue-300' : 'bg-gray-50'}`}
+                >
+                  <div>
+                    <div className="font-medium">{team.name}</div>
+                    <div className="text-xs text-gray-500">{team.members}</div>
+                  </div>
+                  <div className="font-bold text-lg">{scores[index]}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        {/* Right Column - Quiz Questions */}
+        <div className="lg:col-span-2">
+          <div className={`bg-white rounded-2xl shadow-xl p-6 h-full transform transition-transform ${shake ? 'animate-shake' : ''}`}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">
+                Climate Quiz
+              </h2>
+              <div className="text-sm text-gray-600 animate-bounce bg-blue-100 px-3 py-1 rounded-full">
+                Question {currentQuestion + 1} of {quizQuestions.length}
+              </div>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="w-full bg-gray-200 rounded-full h-3 mb-6 overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-blue-600 to-green-600 h-3 rounded-full transition-all duration-1000 ease-in-out"
+                style={{ width: `${((currentQuestion + 1) / quizQuestions.length) * 100}%` }}
+              ></div>
+            </div>
+
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold mb-6 text-gray-800">
+                {quizQuestions[currentQuestion].question}
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {quizQuestions[currentQuestion].options.map((option, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleAnswerClick(option)}
+                    disabled={showAnswer}
+                    className={`p-4 rounded-xl text-left transition-all duration-300 transform hover:scale-[1.02] 
+                      ${selectedAnswer === option
+                        ? option === quizQuestions[currentQuestion].correctAnswer
+                          ? 'bg-green-100 border-2 border-green-500 animate-bounce'
+                          : 'bg-red-100 border-2 border-red-500 animate-shake'
+                        : 'bg-gray-100 hover:bg-gray-200 hover:shadow-md'
+                      }`}
+                  >
+                    <div className="flex items-center">
+                      <span className="mr-2 font-bold">{String.fromCharCode(65 + index)}.</span>
+                      {option}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Feedback Messages */}
+            {showAnswer && (
+              <Alert className={`rounded-xl mb-4 transform transition-all duration-300 ${
+                isCorrect ? 'bg-green-100 border-green-500 animate-bounce' : 
+                selectedAnswer === 'Time Up!' || selectedAnswer === 'No team answered correctly!' ? 
+                'bg-purple-100 border-purple-500' : 'bg-red-100 border-red-500 animate-shake'
+              }`}>
+                {isCorrect ? (
+                  <div className="flex items-center">
+                    <CheckCircle2 className="h-5 w-5 text-green-600 mr-2 animate-bounce" />
+                    <AlertDescription>
+                      <span className="font-bold">Correct! 🎉 </span>
+                      {quizQuestions[currentQuestion].funFact}
+                    </AlertDescription>
+                  </div>
+                ) : selectedAnswer === 'Time Up!' ? (
+                  <div className="flex items-center">
+                    <Clock className="h-5 w-5 text-purple-600 mr-2 animate-pulse" />
+                    <AlertDescription>
+                      <span className="font-bold">Time's Up! ⏰ </span>
+                      The correct answer was: {quizQuestions[currentQuestion].correctAnswer}
+                    </AlertDescription>
+                  </div>
+                ) : selectedAnswer === 'No team answered correctly!' ? (
+                  <div className="flex items-center">
+                    <AlertCircle className="h-5 w-5 text-purple-600 mr-2 animate-pulse" />
+                    <AlertDescription>
+                      <span className="font-bold">No correct answers! </span>
+                      The right answer was: {quizQuestions[currentQuestion].correctAnswer}
+                    </AlertDescription>
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    <AlertCircle className="h-5 w-5 text-red-600 mr-2 animate-pulse" />
+                    <AlertDescription>
+                      <span className="font-bold">Incorrect! </span>
+                      Next team's turn!
+                    </AlertDescription>
+                  </div>
+                )}
+              </Alert>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Quiz = () => {
+  const [gameStarted, setGameStarted] = useState(false);
+  const [teams, setTeams] = useState([]);
+
+  const startGame = (teamData) => {
+    setTeams(teamData);
+    setGameStarted(true);
+  };
+
+  const finishGame = () => {
+    setGameStarted(false);
+    setTeams([]);
+  };
+
+  return (
+    <div className="min-h-screen p-4 bg-gradient-to-br from-blue-50 to-green-50">
+      {gameStarted ? (
+        <QuizGame teams={teams} onFinish={finishGame} />
+      ) : (
+        <TeamSetup onStart={startGame} />
+      )}
+    </div>
+  );
+};
+
+export default Quiz;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState, useEffect, useRef } from 'react';
+// import { AlertCircle, CheckCircle2, ChevronRight, Cloud, Sun, Zap, Trophy, Users, Plus, X, Clock, ChevronLeft } from 'lucide-react';
+// import { Alert, AlertDescription } from './components/ui/alert';
+
+// const quizQuestions = [
+//   {
+//     question: "What should you do if an earthquake happens while you are inside your classroom?",
+//     options: [
+//       "Take cover under your desk",
+//       "Run outside immediately",
+//       "Stand near a window and watch",
+//       "Jump up and down",
+//       "Call your friends to take selfies",
+//       "Throw your books at the shaking walls"
+//     ],
+//     correctAnswer: "Take cover under your desk",
+//     funFact: "Hiding under a desk protects you from falling objects during an earthquake!"
+//   },
+//   {
+//     question: "How can we reduce air pollution in Kathmandu?",
+//     options: [
+//       "Use bicycles or walk instead of riding cars",
+//       "Burn plastic and garbage to make the air warm",
+//       "Cut down all trees to create open space",
+//       "Keep factories running 24/7 with no filters",
+//       "Only wear masks but do nothing else",
+//       "Blow a fan towards the sky to push pollution away"
+//     ],
+//     correctAnswer: "Use bicycles or walk instead of riding cars",
+//     funFact: "Fewer cars on the road mean cleaner air for everyone!"
+//   },
+//   {
+//     question: "What is the best way to prepare for floods in Nepal?",
+//     options: [
+//       "Build houses on higher ground",
+//       "Store all your things in the basement",
+//       "Make paper boats and float on the water",
+//       "Wait for the water to disappear on its own",
+//       "Dig holes to hide from the water",
+//       "Collect the floodwater in buckets"
+//     ],
+//     correctAnswer: "Build houses on higher ground",
+//     funFact: "Living on higher ground keeps people safe from rising floodwaters!"
+//   },
+//   {
+//     question: "Why do we need to plant more trees?",
+//     options: [
+//       "They clean the air and give us oxygen",
+//       "They make our playgrounds messy",
+//       "They create more shade for sleeping",
+//       "They scare away birds",
+//       "They stop Wi-Fi signals",
+//       "They take up too much space"
+//     ],
+//     correctAnswer: "They clean the air and give us oxygen",
+//     funFact: "Trees absorb carbon dioxide and help fight climate change!"
+//   },
+//   {
+//     question: "What should you do if a fire breaks out in your home?",
+//     options: [
+//       "Stay low and find a safe exit",
+//       "Throw water on an electrical fire",
+//       "Run around screaming for help",
+//       "Hide under your bed",
+//       "Close all doors and windows to trap the fire",
+//       "Try to put out the fire with a fan"
+//     ],
+//     correctAnswer: "Stay low and find a safe exit",
+//     funFact: "Smoke rises, so staying low helps you breathe cleaner air while escaping!"
+//   },
+//   {
+//     question: "How can we save water at home?",
+//     options: [
+//       "Turn off taps when not in use",
+//       "Keep taps running all day",
+//       "Take very long showers",
+//       "Water plants with bottled water only",
+//       "Wash clothes one at a time in full buckets",
+//       "Use as much water as possible because it's unlimited"
+//     ],
+//     correctAnswer: "Turn off taps when not in use",
+//     funFact: "Saving water helps during dry seasons and prevents shortages!"
+//   },
+//   {
+//     question: "Which of these helps to reduce plastic pollution?",
+//     options: [
+//       "Using cloth or paper bags instead of plastic bags",
+//       "Throwing plastic into rivers",
+//       "Burning plastic to make space",
+//       "Burying plastic deep underground",
+//       "Collecting plastic and throwing it into a bigger pile",
+//       "Making all school books out of plastic"
+//     ],
+//     correctAnswer: "Using cloth or paper bags instead of plastic bags",
+//     funFact: "Plastic takes hundreds of years to decompose, so reducing its use helps the environment!"
+//   },
+//   {
+//     question: "What is the safest place to be during a thunderstorm?",
+//     options: [
+//       "Inside a strong building",
+//       "Under a tall tree",
+//       "In the middle of an open field",
+//       "On the rooftop of your house",
+//       "Holding a metal rod in your hand",
+//       "Standing in a swimming pool"
+//     ],
+//     correctAnswer: "Inside a strong building",
+//     funFact: "Being indoors reduces the risk of being struck by lightning!"
+//   },
+//   {
+//     question: "What can we do to make Kathmandu cleaner?",
+//     options: [
+//       "Throw garbage in dustbins",
+//       "Throw plastic in the river",
+//       "Leave garbage on the streets",
+//       "Wait for someone else to clean",
+//       "Burn trash on roads",
+//       "Hide garbage under your bed"
+//     ],
+//     correctAnswer: "Throw garbage in dustbins",
+//     funFact: "Proper waste disposal keeps our city clean and healthy!"
+//   },
+//   {
+//     question: "Why is it important to have an emergency kit at home?",
+//     options: [
+//       "It helps during disasters like earthquakes and floods",
+//       "It is fun to collect random things",
+//       "It makes you feel like a superhero",
+//       "It’s only for decoration",
+//       "It attracts thieves",
+//       "It takes up space for no reason"
+//     ],
+//     correctAnswer: "It helps during disasters like earthquakes and floods",
+//     funFact: "Emergency kits with food, water, and first-aid supplies can save lives!"
+//   },
+//   {
+//     question: "Which of these is a renewable energy source?",
+//     options: [
+//       "Solar power from the sun",
+//       "Petrol from cars",
+//       "Gas from cooking stoves",
+//       "Coal from deep underground",
+//       "Plastic waste burned for heat",
+//       "Batteries that never run out"
+//     ],
+//     correctAnswer: "Solar power from the sun",
+//     funFact: "Solar energy is clean and never runs out, unlike fossil fuels!"
+//   },
+//   {
+//     question: "What should you do if you see someone littering?",
+//     options: [
+//       "Politely remind them to use a dustbin",
+//       "Ignore them and walk away",
+//       "Join them and throw more trash",
+//       "Wait for a government official to stop them",
+//       "Take their trash home with you",
+//       "Throw your own trash even farther"
+//     ],
+//     correctAnswer: "Politely remind them to use a dustbin",
+//     funFact: "Encouraging others to keep the environment clean helps everyone!"
+//   },
+//   {
+//     question: "Why do glaciers in Nepal’s mountains matter?",
+//     options: [
+//       "They provide water for rivers",
+//       "They are fun places to play",
+//       "They make great ice cream factories",
+//       "They keep Mount Everest cold",
+//       "They protect us from aliens",
+//       "They stop the wind from blowing"
+//     ],
+//     correctAnswer: "They provide water for rivers",
+//     funFact: "Melting glaciers affect Nepal’s water supply and can cause floods!"
+//   }
+// ];
+
+// const TeamSetup = ({ onStart }) => {
+//   const [teams, setTeams] = useState([{ name: '', members: '' }]);
+//   const [error, setError] = useState('');
+
+//   const handleTeamChange = (index, field, value) => {
+//     const updatedTeams = [...teams];
+//     updatedTeams[index][field] = value;
+//     setTeams(updatedTeams);
+//   };
+
+//   const addTeam = () => {
+//     if (teams.length < 5) {
+//       setTeams([...teams, { name: '', members: '' }]);
+//     }
+//   };
+
+//   const removeTeam = (index) => {
+//     if (teams.length > 1) {
+//       const updatedTeams = teams.filter((_, i) => i !== index);
+//       setTeams(updatedTeams);
+//     }
+//   };
+
+//   const startQuiz = () => {
+//     const incompleteTeams = teams.some(team => !team.name.trim() || !team.members.trim());
+//     if (incompleteTeams) {
+//       setError('Please fill in all team names and members');
+//       return;
+//     }
+//     setError('');
+//     onStart(teams);
+//   };
+
+//   return (
+//     <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-8 animate-slide-in">
+//       <h2 className="text-3xl font-bold text-gray-800 mb-8 flex items-center justify-center">
+//         <Users className="mr-3 w-8 h-8 text-blue-600" /> Team Setup
+//       </h2>
+      
+//       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+//         {teams.map((team, index) => (
+//           <div key={index} className="p-6 border-2 border-blue-100 rounded-xl bg-gradient-to-br from-blue-50 to-white relative">
+//             {teams.length > 1 && (
+//               <button 
+//                 onClick={() => removeTeam(index)}
+//                 className="absolute top-3 right-3 text-red-500 hover:text-red-700 bg-white rounded-full p-1 shadow"
+//               >
+//                 <X size={18} />
+//               </button>
+//             )}
+            
+//             <div className="mb-4">
+//               <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                 Team {index + 1} Name
+//               </label>
+//               <input
+//                 type="text"
+//                 value={team.name}
+//                 onChange={(e) => handleTeamChange(index, 'name', e.target.value)}
+//                 className="w-full p-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+//                 placeholder={`Team ${index + 1} name`}
+//               />
+//             </div>
+            
+//             <div>
+//               <label className="block text-sm font-semibold text-gray-700 mb-2">
+//                 Team Members
+//               </label>
+//               <input
+//                 type="text"
+//                 value={team.members}
+//                 onChange={(e) => handleTeamChange(index, 'members', e.target.value)}
+//                 className="w-full p-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+//                 placeholder="Member 1, Member 2, ..."
+//               />
+//             </div>
+//           </div>
+//         ))}
+//       </div>
+      
+//       <div className="flex justify-between items-center">
+//         {teams.length < 5 && (
+//           <button
+//             onClick={addTeam}
+//             className="flex items-center text-blue-600 hover:text-blue-800 font-medium px-4 py-2 rounded-lg bg-blue-50 transition-colors"
+//           >
+//             <Plus size={18} className="mr-2" /> Add Team
+//           </button>
+//         )}
+        
+//         <div className="flex-1"></div>
+        
+//         <button
+//           onClick={startQuiz}
+//           className="flex items-center bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white py-3 px-6 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl"
+//         >
+//           Start Quiz <ChevronRight className="ml-2 w-5 h-5" />
+//         </button>
+//       </div>
+      
+//       {error && (
+//         <div className="mt-4 text-red-500 text-center font-medium">{error}</div>
+//       )}
+//     </div>
+//   );
+// };
+
+// const QuizGame = ({ teams, onFinish }) => {
+//   const [currentQuestion, setCurrentQuestion] = useState(0);
+//   const [selectedAnswer, setSelectedAnswer] = useState('');
+//   const [showAnswer, setShowAnswer] = useState(false);
+//   const [isCorrect, setIsCorrect] = useState(false);
+//   const [scores, setScores] = useState(teams.map(() => 0));
+//   const [currentTeam, setCurrentTeam] = useState(0);
+//   const [shake, setShake] = useState(false);
+//   const [gameOver, setGameOver] = useState(false);
+//   const [timeLeft, setTimeLeft] = useState(60);
+//   const [timerActive, setTimerActive] = useState(true);
+//   const [originalTeam, setOriginalTeam] = useState(0);
+//   const timerRef = useRef(null);
+
+//   const startTimer = (duration) => {
+//     setTimeLeft(duration);
+//     setTimerActive(true);
+//   };
+
+//   const stopTimer = () => {
+//     setTimerActive(false);
+//     if (timerRef.current) {
+//       clearInterval(timerRef.current);
+//       timerRef.current = null;
+//     }
+//   };
+
+//   useEffect(() => {
+//     if (timerActive) {
+//       timerRef.current = setInterval(() => {
+//         setTimeLeft(prevTime => {
+//           if (prevTime <= 1) {
+//             clearInterval(timerRef.current);
+//             handleTimeUp();
+//             return 0;
+//           }
+//           return prevTime - 1;
+//         });
+//       }, 1000);
+//     }
+
+//     return () => {
+//       if (timerRef.current) {
+//         clearInterval(timerRef.current);
+//       }
+//     };
+//   }, [timerActive]);
+
+//   useEffect(() => {
+//     // Start with 60 seconds for the first team
+//     startTimer(60);
+//     setOriginalTeam(currentTeam);
+//   }, [currentQuestion]);
+
+//   const handleTimeUp = () => {
+//     setTimerActive(false);
+//     setShowAnswer(true);
+//     setIsCorrect(false);
+//     setSelectedAnswer('Time Up!');
+    
+//     setTimeout(() => {
+//       if (currentQuestion < quizQuestions.length - 1) {
+//         nextQuestion();
+//       } else {
+//         endGame();
+//       }
+//     }, 2000);
+//   };
+
+//   const handleAnswerClick = (answer) => {
+//     stopTimer();
+//     setSelectedAnswer(answer);
+//     setShowAnswer(true);
+    
+//     if (answer === quizQuestions[currentQuestion].correctAnswer) {
+//       setIsCorrect(true);
+//       const newScores = [...scores];
+//       newScores[currentTeam] += 1;
+//       setScores(newScores);
+      
+//       setTimeout(() => {
+//         if (currentQuestion < quizQuestions.length - 1) {
+//           nextQuestion();
+//         } else {
+//           endGame();
+//         }
+//       }, 2000);
+//     } else {
+//       setIsCorrect(false);
+//       setShake(true);
+//       setTimeout(() => {
+//         setShake(false);
+//         setShowAnswer(false);
+//         setSelectedAnswer('');
+//         const nextTeam = (currentTeam + 1) % teams.length;
+//         setCurrentTeam(nextTeam);
+        
+//         // If we've gone through all teams without correct answer
+//         if (nextTeam === originalTeam) {
+//           setShowAnswer(true);
+//           setIsCorrect(false);
+//           setSelectedAnswer('No team answered correctly!');
+//           setTimeout(() => {
+//             if (currentQuestion < quizQuestions.length - 1) {
+//               nextQuestion();
+//             } else {
+//               endGame();
+//             }
+//           }, 2000);
+//         } else {
+//           // Start 35 second timer for next team
+//           startTimer(35);
+//         }
+//       }, 1000);
+//     }
+//   };
+
+//   const nextQuestion = () => {
+//     setCurrentQuestion(currentQuestion + 1);
+//     setSelectedAnswer('');
+//     setShowAnswer(false);
+//     setIsCorrect(false);
+//     setCurrentTeam((currentTeam + 1) % teams.length);
+//   };
+
+//   const endGame = () => {
+//     setGameOver(true);
+//   };
+
+//   const resetGame = () => {
+//     onFinish();
+//   };
+
+//   if (gameOver) {
+//     const maxScore = Math.max(...scores);
+//     const winningTeams = teams.filter((_, index) => scores[index] === maxScore);
+    
+//     return (
+//       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-8 animate-slide-in">
+//         <h2 className="text-3xl font-bold text-gray-800 mb-8 flex items-center justify-center">
+//           <Trophy className="mr-3 w-8 h-8 text-yellow-500" /> Quiz Results
+//         </h2>
+        
+//         <div className="mb-8">
+//           <h3 className="text-2xl font-semibold mb-6 text-center text-gray-700">
+//             {winningTeams.length > 1 ? "It's a tie!" : "We have a winner!"}
+//           </h3>
+          
+//           {winningTeams.map((team, index) => (
+//             <div key={index} className="bg-gradient-to-r from-yellow-100 to-yellow-50 border-l-8 border-yellow-500 p-6 mb-6 rounded-r-lg shadow-md">
+//               <h4 className="font-bold text-2xl text-yellow-800">{team.name}</h4>
+//               <p className="text-yellow-700 text-lg">{team.members}</p>
+//               <p className="font-bold mt-3 text-xl">Score: {maxScore}/{quizQuestions.length}</p>
+//             </div>
+//           ))}
+//         </div>
+        
+//         <div className="mb-8">
+//           <h4 className="font-semibold text-xl mb-4 text-center">All Teams:</h4>
+//           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//             {teams.map((team, index) => (
+//               <div 
+//                 key={index} 
+//                 className={`p-4 rounded-xl shadow-sm ${scores[index] === maxScore ? 'bg-yellow-50 border-2 border-yellow-300' : 'bg-gray-50 border border-gray-200'}`}
+//               >
+//                 <div className="flex justify-between items-center">
+//                   <div>
+//                     <span className="font-medium text-lg">{team.name}</span>
+//                     <p className="text-sm text-gray-600">{team.members}</p>
+//                   </div>
+//                   <span className="font-bold text-xl">{scores[index]} points</span>
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+        
+//         <div className="flex justify-center">
+//           <button
+//             onClick={resetGame}
+//             className="flex items-center bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white py-3 px-8 rounded-lg font-semibold text-lg transition-all shadow-lg hover:shadow-xl"
+//           >
+//             <ChevronLeft className="mr-2 w-5 h-5" /> Play Again
+//           </button>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="min-h-screen p-4">
+//       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+//         {/* Left Column - Team Info */}
+//         <div className="lg:col-span-1 space-y-6">
+//           {/* Current Team */}
+//           <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl shadow-xl p-6 text-white">
+//             <div className="text-sm font-medium mb-1">Current Team</div>
+//             <div className="text-2xl font-bold mb-2">{teams[currentTeam].name}</div>
+//             <div className="text-sm opacity-90 mb-4">{teams[currentTeam].members}</div>
+            
+//             {/* Timer */}
+//             <div className="flex items-center justify-between bg-blue-900 bg-opacity-30 rounded-lg p-3">
+//               <div className="flex items-center">
+//                 <Clock className="w-5 h-5 mr-2" />
+//                 <span className="font-mono text-xl">
+//                   {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+//                 </span>
+//               </div>
+//               <div className="text-sm">
+//                 {currentTeam === originalTeam ? "First Chance" : "Pass Chance"}
+//               </div>
+//             </div>
+//           </div>
+          
+//           {/* Scoreboard */}
+//           <div className="bg-white rounded-2xl shadow-xl p-6">
+//             <h3 className="text-xl font-bold text-gray-800 mb-4">Scoreboard</h3>
+//             <div className="space-y-3">
+//               {teams.map((team, index) => (
+//                 <div 
+//                   key={index} 
+//                   className={`flex items-center justify-between p-3 rounded-lg transition-all ${index === currentTeam ? 'bg-blue-100 border-2 border-blue-300' : 'bg-gray-50'}`}
+//                 >
+//                   <div>
+//                     <div className="font-medium">{team.name}</div>
+//                     <div className="text-xs text-gray-500">{team.members}</div>
+//                   </div>
+//                   <div className="font-bold text-lg">{scores[index]}</div>
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+//         </div>
+        
+//         {/* Right Column - Quiz Questions */}
+//         <div className="lg:col-span-2">
+//           <div className={`bg-white rounded-2xl shadow-xl p-6 h-full transform transition-transform ${shake ? 'animate-shake' : ''}`}>
+//             <div className="flex justify-between items-center mb-6">
+//               <h2 className="text-2xl font-bold text-gray-800">
+//                 Climate Quiz
+//               </h2>
+//               <div className="text-sm text-gray-600 animate-bounce bg-blue-100 px-3 py-1 rounded-full">
+//                 Question {currentQuestion + 1} of {quizQuestions.length}
+//               </div>
+//             </div>
+            
+//             {/* Progress Bar */}
+//             <div className="w-full bg-gray-200 rounded-full h-3 mb-6 overflow-hidden">
+//               <div 
+//                 className="bg-gradient-to-r from-blue-600 to-green-600 h-3 rounded-full transition-all duration-1000 ease-in-out"
+//                 style={{ width: `${((currentQuestion + 1) / quizQuestions.length) * 100}%` }}
+//               ></div>
+//             </div>
+
+//             <div className="mb-6">
+//               <h3 className="text-xl font-semibold mb-6 text-gray-800">
+//                 {quizQuestions[currentQuestion].question}
+//               </h3>
+              
+//               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+//                 {quizQuestions[currentQuestion].options.map((option, index) => (
+//                   <button
+//                     key={index}
+//                     onClick={() => handleAnswerClick(option)}
+//                     disabled={showAnswer}
+//                     className={`p-4 rounded-xl text-left transition-all duration-300 transform hover:scale-[1.02] 
+//                       ${selectedAnswer === option
+//                         ? option === quizQuestions[currentQuestion].correctAnswer
+//                           ? 'bg-green-100 border-2 border-green-500 animate-bounce'
+//                           : 'bg-red-100 border-2 border-red-500 animate-shake'
+//                         : 'bg-gray-100 hover:bg-gray-200 hover:shadow-md'
+//                       }`}
+//                   >
+//                     <div className="flex items-center">
+//                       <span className="mr-2 font-bold">{String.fromCharCode(65 + index)}.</span>
+//                       {option}
+//                     </div>
+//                   </button>
+//                 ))}
+//               </div>
+//             </div>
+
+//             {/* Feedback Messages */}
+//             {showAnswer && (
+//               <Alert className={`rounded-xl mb-4 transform transition-all duration-300 ${
+//                 isCorrect ? 'bg-green-100 border-green-500 animate-bounce' : 
+//                 selectedAnswer === 'Time Up!' || selectedAnswer === 'No team answered correctly!' ? 
+//                 'bg-purple-100 border-purple-500' : 'bg-red-100 border-red-500 animate-shake'
+//               }`}>
+//                 {isCorrect ? (
+//                   <div className="flex items-center">
+//                     <CheckCircle2 className="h-5 w-5 text-green-600 mr-2 animate-bounce" />
+//                     <AlertDescription>
+//                       <span className="font-bold">Correct! 🎉 </span>
+//                       {quizQuestions[currentQuestion].funFact}
+//                     </AlertDescription>
+//                   </div>
+//                 ) : selectedAnswer === 'Time Up!' ? (
+//                   <div className="flex items-center">
+//                     <Clock className="h-5 w-5 text-purple-600 mr-2 animate-pulse" />
+//                     <AlertDescription>
+//                       <span className="font-bold">Time's Up! ⏰ </span>
+//                       The correct answer was: {quizQuestions[currentQuestion].correctAnswer}
+//                     </AlertDescription>
+//                   </div>
+//                 ) : selectedAnswer === 'No team answered correctly!' ? (
+//                   <div className="flex items-center">
+//                     <AlertCircle className="h-5 w-5 text-purple-600 mr-2 animate-pulse" />
+//                     <AlertDescription>
+//                       <span className="font-bold">No correct answers! </span>
+//                       The right answer was: {quizQuestions[currentQuestion].correctAnswer}
+//                     </AlertDescription>
+//                   </div>
+//                 ) : (
+//                   <div className="flex items-center">
+//                     <AlertCircle className="h-5 w-5 text-red-600 mr-2 animate-pulse" />
+//                     <AlertDescription>
+//                       <span className="font-bold">Incorrect! </span>
+//                       Next team's turn!
+//                     </AlertDescription>
+//                   </div>
+//                 )}
+//               </Alert>
+//             )}
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// const Quiz = () => {
+//   const [gameStarted, setGameStarted] = useState(false);
+//   const [teams, setTeams] = useState([]);
+
+//   const startGame = (teamData) => {
+//     setTeams(teamData);
+//     setGameStarted(true);
+//   };
+
+//   const finishGame = () => {
+//     setGameStarted(false);
+//     setTeams([]);
+//   };
+
+//   return (
+//     <div className="min-h-screen p-4 bg-gradient-to-br from-blue-50 to-green-50">
+//       {gameStarted ? (
+//         <QuizGame teams={teams} onFinish={finishGame} />
+//       ) : (
+//         <TeamSetup onStart={startGame} />
+//       )}
+//     </div>
+//   );
+// };
+
+// export default Quiz;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import React, { useState } from 'react';
+// import { AlertCircle, CheckCircle2, ChevronRight, Cloud, Sun, Zap } from 'lucide-react';
+// import { Alert, AlertDescription } from './components/ui/alert';
+
+// const quizQuestions = [
+//   {
+//     question: "What should you do if an earthquake happens while you are inside your classroom?",
+//     options: [
+//       "Take cover under your desk",
+//       "Run outside immediately",
+//       "Stand near a window and watch",
+//       "Jump up and down",
+//       "Call your friends to take selfies",
+//       "Throw your books at the shaking walls"
+//     ],
+//     correctAnswer: "Take cover under your desk",
+//     funFact: "Hiding under a desk protects you from falling objects during an earthquake!"
+//   },
+//   {
+//     question: "How can we reduce air pollution in Kathmandu?",
+//     options: [
+//       "Use bicycles or walk instead of riding cars",
+//       "Burn plastic and garbage to make the air warm",
+//       "Cut down all trees to create open space",
+//       "Keep factories running 24/7 with no filters",
+//       "Only wear masks but do nothing else",
+//       "Blow a fan towards the sky to push pollution away"
+//     ],
+//     correctAnswer: "Use bicycles or walk instead of riding cars",
+//     funFact: "Fewer cars on the road mean cleaner air for everyone!"
+//   },
+//   {
+//     question: "What is the best way to prepare for floods in Nepal?",
+//     options: [
+//       "Build houses on higher ground",
+//       "Store all your things in the basement",
+//       "Make paper boats and float on the water",
+//       "Wait for the water to disappear on its own",
+//       "Dig holes to hide from the water",
+//       "Collect the floodwater in buckets"
+//     ],
+//     correctAnswer: "Build houses on higher ground",
+//     funFact: "Living on higher ground keeps people safe from rising floodwaters!"
+//   },
+//   {
+//     question: "Why do we need to plant more trees?",
+//     options: [
+//       "They clean the air and give us oxygen",
+//       "They make our playgrounds messy",
+//       "They create more shade for sleeping",
+//       "They scare away birds",
+//       "They stop Wi-Fi signals",
+//       "They take up too much space"
+//     ],
+//     correctAnswer: "They clean the air and give us oxygen",
+//     funFact: "Trees absorb carbon dioxide and help fight climate change!"
+//   },
+//   {
+//     question: "What should you do if a fire breaks out in your home?",
+//     options: [
+//       "Stay low and find a safe exit",
+//       "Throw water on an electrical fire",
+//       "Run around screaming for help",
+//       "Hide under your bed",
+//       "Close all doors and windows to trap the fire",
+//       "Try to put out the fire with a fan"
+//     ],
+//     correctAnswer: "Stay low and find a safe exit",
+//     funFact: "Smoke rises, so staying low helps you breathe cleaner air while escaping!"
+//   },
+//   {
+//     question: "How can we save water at home?",
+//     options: [
+//       "Turn off taps when not in use",
+//       "Keep taps running all day",
+//       "Take very long showers",
+//       "Water plants with bottled water only",
+//       "Wash clothes one at a time in full buckets",
+//       "Use as much water as possible because it's unlimited"
+//     ],
+//     correctAnswer: "Turn off taps when not in use",
+//     funFact: "Saving water helps during dry seasons and prevents shortages!"
+//   },
+//   {
+//     question: "Which of these helps to reduce plastic pollution?",
+//     options: [
+//       "Using cloth or paper bags instead of plastic bags",
+//       "Throwing plastic into rivers",
+//       "Burning plastic to make space",
+//       "Burying plastic deep underground",
+//       "Collecting plastic and throwing it into a bigger pile",
+//       "Making all school books out of plastic"
+//     ],
+//     correctAnswer: "Using cloth or paper bags instead of plastic bags",
+//     funFact: "Plastic takes hundreds of years to decompose, so reducing its use helps the environment!"
+//   },
+//   {
+//     question: "What is the safest place to be during a thunderstorm?",
+//     options: [
+//       "Inside a strong building",
+//       "Under a tall tree",
+//       "In the middle of an open field",
+//       "On the rooftop of your house",
+//       "Holding a metal rod in your hand",
+//       "Standing in a swimming pool"
+//     ],
+//     correctAnswer: "Inside a strong building",
+//     funFact: "Being indoors reduces the risk of being struck by lightning!"
+//   },
+//   {
+//     question: "What can we do to make Kathmandu cleaner?",
+//     options: [
+//       "Throw garbage in dustbins",
+//       "Throw plastic in the river",
+//       "Leave garbage on the streets",
+//       "Wait for someone else to clean",
+//       "Burn trash on roads",
+//       "Hide garbage under your bed"
+//     ],
+//     correctAnswer: "Throw garbage in dustbins",
+//     funFact: "Proper waste disposal keeps our city clean and healthy!"
+//   },
+//   {
+//     question: "Why is it important to have an emergency kit at home?",
+//     options: [
+//       "It helps during disasters like earthquakes and floods",
+//       "It is fun to collect random things",
+//       "It makes you feel like a superhero",
+//       "It’s only for decoration",
+//       "It attracts thieves",
+//       "It takes up space for no reason"
+//     ],
+//     correctAnswer: "It helps during disasters like earthquakes and floods",
+//     funFact: "Emergency kits with food, water, and first-aid supplies can save lives!"
+//   },
+//   {
+//     question: "Which of these is a renewable energy source?",
+//     options: [
+//       "Solar power from the sun",
+//       "Petrol from cars",
+//       "Gas from cooking stoves",
+//       "Coal from deep underground",
+//       "Plastic waste burned for heat",
+//       "Batteries that never run out"
+//     ],
+//     correctAnswer: "Solar power from the sun",
+//     funFact: "Solar energy is clean and never runs out, unlike fossil fuels!"
+//   },
+//   {
+//     question: "What should you do if you see someone littering?",
+//     options: [
+//       "Politely remind them to use a dustbin",
+//       "Ignore them and walk away",
+//       "Join them and throw more trash",
+//       "Wait for a government official to stop them",
+//       "Take their trash home with you",
+//       "Throw your own trash even farther"
+//     ],
+//     correctAnswer: "Politely remind them to use a dustbin",
+//     funFact: "Encouraging others to keep the environment clean helps everyone!"
+//   },
+//   {
+//     question: "Why do glaciers in Nepal’s mountains matter?",
+//     options: [
+//       "They provide water for rivers",
+//       "They are fun places to play",
+//       "They make great ice cream factories",
+//       "They keep Mount Everest cold",
+//       "They protect us from aliens",
+//       "They stop the wind from blowing"
+//     ],
+//     correctAnswer: "They provide water for rivers",
+//     funFact: "Melting glaciers affect Nepal’s water supply and can cause floods!"
+//   }
+// ];
+
+// const AnimatedBackground = () => (
+//   <div className="absolute inset-0 overflow-hidden pointer-events-none">
+//     <div className="animate-float absolute top-10 left-10">
+//       <Cloud className="text-blue-200 w-16 h-16" />
+//     </div>
+//     <div className="animate-float-delayed absolute top-20 right-20">
+//       <Sun className="text-yellow-200 w-20 h-20" />
+//     </div>
+//     <div className="animate-float-quick absolute bottom-10 left-1/4">
+//       <Zap className="text-yellow-300 w-12 h-12" />
+//     </div>
+//   </div>
+// );
+
+// const Quiz = () => {
+//   const [currentQuestion, setCurrentQuestion] = useState(0);
+//   const [selectedAnswer, setSelectedAnswer] = useState('');
+//   const [showAnswer, setShowAnswer] = useState(false);
+//   const [isCorrect, setIsCorrect] = useState(false);
+//   const [score, setScore] = useState(0);
+//   const [shake, setShake] = useState(false);
+//   const [attempts, setAttempts] = useState({});  // Track attempts for each question
+
+//   const handleAnswerClick = (answer) => {
+//     setSelectedAnswer(answer);
+//     setShowAnswer(true);
+    
+//     // Update attempts for current question
+//     const currentAttempts = attempts[currentQuestion] || [];
+//     setAttempts({
+//       ...attempts,
+//       [currentQuestion]: [...currentAttempts, answer]
+//     });
+    
+//     if (answer === quizQuestions[currentQuestion].correctAnswer) {
+//       setIsCorrect(true);
+//       setScore(score + 1);
+//       setTimeout(() => {
+//         if (currentQuestion < quizQuestions.length - 1) {
+//           setCurrentQuestion(currentQuestion + 1);
+//           setSelectedAnswer('');
+//           setShowAnswer(false);
+//           setIsCorrect(false);
+//         }
+//       }, 2000);
+//     } else {
+//       setIsCorrect(false);
+//       setShake(true);
+//       setTimeout(() => {
+//         setShake(false);
+//         setShowAnswer(false);  // Reset feedback for next attempt
+//         setSelectedAnswer(''); // Reset selection for next attempt
+//       }, 1000);
+//     }
+//   };
+
+//   return (
+//     <div className="min-h-screen p-4 relative overflow-hidden">
+//       {/* <AnimatedBackground /> */}
+      
+//       <style jsx global>{`
+//         @keyframes float {
+//           0%, 100% { transform: translateY(0); }
+//           50% { transform: translateY(-20px); }
+//         }
+        
+//         @keyframes shake {
+//           0%, 100% { transform: translateX(0); }
+//           25% { transform: translateX(-10px); }
+//           75% { transform: translateX(10px); }
+//         }
+        
+//         @keyframes bounce {
+//           0%, 100% { transform: scale(1); }
+//           50% { transform: scale(1.05); }
+//         }
+        
+//         @keyframes slideIn {
+//           from { transform: translateX(100%); opacity: 0; }
+//           to { transform: translateX(0); opacity: 1; }
+//         }
+        
+//         .animate-float { animation: float 6s ease-in-out infinite; }
+//         .animate-float-delayed { animation: float 8s ease-in-out infinite 1s; }
+//         .animate-float-quick { animation: float 4s ease-in-out infinite 2s; }
+//         .animate-shake { animation: shake 0.5s ease-in-out; }
+//         .animate-bounce { animation: bounce 0.5s ease-in-out; }
+//         .animate-slide-in { animation: slideIn 0.5s ease-out; }
+//       `}</style>
+
+//       <div className="max-w-2xl mx-auto">
+//         <div className={`bg-white rounded-lg shadow-xl p-6 mb-4 relative z-10 transform transition-transform ${shake ? 'animate-shake' : ''}`}>
+//           <div className="mb-4 flex justify-between items-center">
+//             <h2 className="text-2xl font-bold text-gray-800 hover:scale-105 transition-transform">
+//               Climate Quiz
+//             </h2>
+//             <div className="text-sm text-gray-600 animate-bounce">
+//               Question {currentQuestion + 1} of {quizQuestions.length}
+//             </div>
+//           </div>
+          
+//           {/* Progress Bar */}
+//           <div className="w-full bg-gray-200 rounded-full h-2.5 mb-6 overflow-hidden">
+//             <div 
+//               className="bg-green-600 h-2.5 rounded-full transition-all duration-1000 ease-in-out"
+//               style={{ width: `${((currentQuestion + 1) / quizQuestions.length) * 100}%` }}
+//             ></div>
+//           </div>
+
+//           <div className="mb-6 animate-slide-in">
+//             <h3 className="text-xl font-semibold mb-4 hover:text-green-600 transition-colors">
+//               {quizQuestions[currentQuestion].question}
+//             </h3>
+            
+//             <div className="space-y-3">
+//               {quizQuestions[currentQuestion].options.map((option, index) => {
+//                 const currentAttempts = attempts[currentQuestion] || [];
+//                 const wasAttempted = currentAttempts.includes(option);
+                
+//                 return (
+//                   <button
+//                     key={index}
+//                     onClick={() => handleAnswerClick(option)}
+//                     className={`w-full text-left p-3 rounded-lg transition-all duration-300 transform hover:scale-102 
+//                       ${selectedAnswer === option
+//                         ? option === quizQuestions[currentQuestion].correctAnswer
+//                           ? 'bg-green-100 border-2 border-green-500 animate-bounce'
+//                           : 'bg-red-100 border-2 border-red-500 animate-shake'
+//                         : wasAttempted && option !== quizQuestions[currentQuestion].correctAnswer
+//                           ? 'bg-red-50 text-gray-500'
+//                           : 'bg-gray-100 hover:bg-gray-200 hover:shadow-md'
+//                       }`}
+//                     disabled={false}  // Never disable buttons to allow multiple attempts
+//                   >
+//                     <div className="flex items-center">
+//                       <span className="mr-2">{String.fromCharCode(65 + index)}.</span>
+//                       {option}
+//                       {wasAttempted && option !== quizQuestions[currentQuestion].correctAnswer && 
+//                         <span className="ml-2 text-red-500">✗</span>
+//                       }
+//                     </div>
+//                   </button>
+//                 );
+//               })}
+//             </div>
+//           </div>
+
+//           {/* Feedback Messages */}
+//           {showAnswer && (
+//             <Alert className={`mb-4 transform transition-all duration-300 ${
+//               isCorrect ? 'bg-green-100 animate-bounce' : 'bg-red-100 animate-shake'
+//             }`}>
+//               {isCorrect ? (
+//                 <div className="flex items-center">
+//                   <CheckCircle2 className="h-5 w-5 text-green-600 mr-2 animate-bounce" />
+//                   <AlertDescription>
+//                     <span className="font-bold">Correct! 🎉 </span>
+//                     {quizQuestions[currentQuestion].funFact}
+//                   </AlertDescription>
+//                 </div>
+//               ) : (
+//                 <div className="flex items-center">
+//                   <AlertCircle className="h-5 w-5 text-red-600 mr-2 animate-pulse" />
+//                   <AlertDescription>
+//                     <span className="font-bold">Not quite! 🤔 </span>
+//                     Keep trying! You'll get it right!
+//                   </AlertDescription>
+//                 </div>
+//               )}
+//             </Alert>
+//           )}
+
+//           {/* Score and Attempts Display */}
+//           <div className="mt-4 text-center space-y-2">
+//             <div className="text-sm text-gray-500">
+//               Attempts this question: {(attempts[currentQuestion] || []).length}
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default Quiz;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // import React, { useState, useEffect } from 'react';
 // import { AlertCircle, CheckCircle2, Cloud, Sun, Zap, Umbrella, Leaf, Wind, Thermometer } from 'lucide-react';
 // import { Alert, AlertDescription } from './components/ui/alert';
@@ -310,471 +2498,6 @@
 // };
 
 // export default Quiz;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-import React, { useState } from 'react';
-import { AlertCircle, CheckCircle2, ChevronRight, Cloud, Sun, Zap } from 'lucide-react';
-import { Alert, AlertDescription } from './components/ui/alert';
-
-const quizQuestions = [
-  {
-    question: "What should you do if an earthquake happens while you are inside your classroom?",
-    options: [
-      "Take cover under your desk",
-      "Run outside immediately",
-      "Stand near a window and watch",
-      "Jump up and down",
-      "Call your friends to take selfies",
-      "Throw your books at the shaking walls"
-    ],
-    correctAnswer: "Take cover under your desk",
-    funFact: "Hiding under a desk protects you from falling objects during an earthquake!"
-  },
-  {
-    question: "How can we reduce air pollution in Kathmandu?",
-    options: [
-      "Use bicycles or walk instead of riding cars",
-      "Burn plastic and garbage to make the air warm",
-      "Cut down all trees to create open space",
-      "Keep factories running 24/7 with no filters",
-      "Only wear masks but do nothing else",
-      "Blow a fan towards the sky to push pollution away"
-    ],
-    correctAnswer: "Use bicycles or walk instead of riding cars",
-    funFact: "Fewer cars on the road mean cleaner air for everyone!"
-  },
-  {
-    question: "What is the best way to prepare for floods in Nepal?",
-    options: [
-      "Build houses on higher ground",
-      "Store all your things in the basement",
-      "Make paper boats and float on the water",
-      "Wait for the water to disappear on its own",
-      "Dig holes to hide from the water",
-      "Collect the floodwater in buckets"
-    ],
-    correctAnswer: "Build houses on higher ground",
-    funFact: "Living on higher ground keeps people safe from rising floodwaters!"
-  },
-  {
-    question: "Why do we need to plant more trees?",
-    options: [
-      "They clean the air and give us oxygen",
-      "They make our playgrounds messy",
-      "They create more shade for sleeping",
-      "They scare away birds",
-      "They stop Wi-Fi signals",
-      "They take up too much space"
-    ],
-    correctAnswer: "They clean the air and give us oxygen",
-    funFact: "Trees absorb carbon dioxide and help fight climate change!"
-  },
-  {
-    question: "What should you do if a fire breaks out in your home?",
-    options: [
-      "Stay low and find a safe exit",
-      "Throw water on an electrical fire",
-      "Run around screaming for help",
-      "Hide under your bed",
-      "Close all doors and windows to trap the fire",
-      "Try to put out the fire with a fan"
-    ],
-    correctAnswer: "Stay low and find a safe exit",
-    funFact: "Smoke rises, so staying low helps you breathe cleaner air while escaping!"
-  },
-  {
-    question: "How can we save water at home?",
-    options: [
-      "Turn off taps when not in use",
-      "Keep taps running all day",
-      "Take very long showers",
-      "Water plants with bottled water only",
-      "Wash clothes one at a time in full buckets",
-      "Use as much water as possible because it's unlimited"
-    ],
-    correctAnswer: "Turn off taps when not in use",
-    funFact: "Saving water helps during dry seasons and prevents shortages!"
-  },
-  {
-    question: "Which of these helps to reduce plastic pollution?",
-    options: [
-      "Using cloth or paper bags instead of plastic bags",
-      "Throwing plastic into rivers",
-      "Burning plastic to make space",
-      "Burying plastic deep underground",
-      "Collecting plastic and throwing it into a bigger pile",
-      "Making all school books out of plastic"
-    ],
-    correctAnswer: "Using cloth or paper bags instead of plastic bags",
-    funFact: "Plastic takes hundreds of years to decompose, so reducing its use helps the environment!"
-  },
-  {
-    question: "What is the safest place to be during a thunderstorm?",
-    options: [
-      "Inside a strong building",
-      "Under a tall tree",
-      "In the middle of an open field",
-      "On the rooftop of your house",
-      "Holding a metal rod in your hand",
-      "Standing in a swimming pool"
-    ],
-    correctAnswer: "Inside a strong building",
-    funFact: "Being indoors reduces the risk of being struck by lightning!"
-  },
-  {
-    question: "What can we do to make Kathmandu cleaner?",
-    options: [
-      "Throw garbage in dustbins",
-      "Throw plastic in the river",
-      "Leave garbage on the streets",
-      "Wait for someone else to clean",
-      "Burn trash on roads",
-      "Hide garbage under your bed"
-    ],
-    correctAnswer: "Throw garbage in dustbins",
-    funFact: "Proper waste disposal keeps our city clean and healthy!"
-  },
-  {
-    question: "Why is it important to have an emergency kit at home?",
-    options: [
-      "It helps during disasters like earthquakes and floods",
-      "It is fun to collect random things",
-      "It makes you feel like a superhero",
-      "It’s only for decoration",
-      "It attracts thieves",
-      "It takes up space for no reason"
-    ],
-    correctAnswer: "It helps during disasters like earthquakes and floods",
-    funFact: "Emergency kits with food, water, and first-aid supplies can save lives!"
-  },
-  {
-    question: "Which of these is a renewable energy source?",
-    options: [
-      "Solar power from the sun",
-      "Petrol from cars",
-      "Gas from cooking stoves",
-      "Coal from deep underground",
-      "Plastic waste burned for heat",
-      "Batteries that never run out"
-    ],
-    correctAnswer: "Solar power from the sun",
-    funFact: "Solar energy is clean and never runs out, unlike fossil fuels!"
-  },
-  {
-    question: "What should you do if you see someone littering?",
-    options: [
-      "Politely remind them to use a dustbin",
-      "Ignore them and walk away",
-      "Join them and throw more trash",
-      "Wait for a government official to stop them",
-      "Take their trash home with you",
-      "Throw your own trash even farther"
-    ],
-    correctAnswer: "Politely remind them to use a dustbin",
-    funFact: "Encouraging others to keep the environment clean helps everyone!"
-  },
-  {
-    question: "Why do glaciers in Nepal’s mountains matter?",
-    options: [
-      "They provide water for rivers",
-      "They are fun places to play",
-      "They make great ice cream factories",
-      "They keep Mount Everest cold",
-      "They protect us from aliens",
-      "They stop the wind from blowing"
-    ],
-    correctAnswer: "They provide water for rivers",
-    funFact: "Melting glaciers affect Nepal’s water supply and can cause floods!"
-  }
-];
-
-const AnimatedBackground = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    <div className="animate-float absolute top-10 left-10">
-      <Cloud className="text-blue-200 w-16 h-16" />
-    </div>
-    <div className="animate-float-delayed absolute top-20 right-20">
-      <Sun className="text-yellow-200 w-20 h-20" />
-    </div>
-    <div className="animate-float-quick absolute bottom-10 left-1/4">
-      <Zap className="text-yellow-300 w-12 h-12" />
-    </div>
-  </div>
-);
-
-const Quiz = () => {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState('');
-  const [showAnswer, setShowAnswer] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [score, setScore] = useState(0);
-  const [shake, setShake] = useState(false);
-  const [attempts, setAttempts] = useState({});  // Track attempts for each question
-
-  const handleAnswerClick = (answer) => {
-    setSelectedAnswer(answer);
-    setShowAnswer(true);
-    
-    // Update attempts for current question
-    const currentAttempts = attempts[currentQuestion] || [];
-    setAttempts({
-      ...attempts,
-      [currentQuestion]: [...currentAttempts, answer]
-    });
-    
-    if (answer === quizQuestions[currentQuestion].correctAnswer) {
-      setIsCorrect(true);
-      setScore(score + 1);
-      setTimeout(() => {
-        if (currentQuestion < quizQuestions.length - 1) {
-          setCurrentQuestion(currentQuestion + 1);
-          setSelectedAnswer('');
-          setShowAnswer(false);
-          setIsCorrect(false);
-        }
-      }, 2000);
-    } else {
-      setIsCorrect(false);
-      setShake(true);
-      setTimeout(() => {
-        setShake(false);
-        setShowAnswer(false);  // Reset feedback for next attempt
-        setSelectedAnswer(''); // Reset selection for next attempt
-      }, 1000);
-    }
-  };
-
-  return (
-    <div className="min-h-screen p-4 relative overflow-hidden">
-      {/* <AnimatedBackground /> */}
-      
-      <style jsx global>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-20px); }
-        }
-        
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-10px); }
-          75% { transform: translateX(10px); }
-        }
-        
-        @keyframes bounce {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-        }
-        
-        @keyframes slideIn {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-        
-        .animate-float { animation: float 6s ease-in-out infinite; }
-        .animate-float-delayed { animation: float 8s ease-in-out infinite 1s; }
-        .animate-float-quick { animation: float 4s ease-in-out infinite 2s; }
-        .animate-shake { animation: shake 0.5s ease-in-out; }
-        .animate-bounce { animation: bounce 0.5s ease-in-out; }
-        .animate-slide-in { animation: slideIn 0.5s ease-out; }
-      `}</style>
-
-      <div className="max-w-2xl mx-auto">
-        <div className={`bg-white rounded-lg shadow-xl p-6 mb-4 relative z-10 transform transition-transform ${shake ? 'animate-shake' : ''}`}>
-          <div className="mb-4 flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-800 hover:scale-105 transition-transform">
-              Climate Quiz
-            </h2>
-            <div className="text-sm text-gray-600 animate-bounce">
-              Question {currentQuestion + 1} of {quizQuestions.length}
-            </div>
-          </div>
-          
-          {/* Progress Bar */}
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-6 overflow-hidden">
-            <div 
-              className="bg-green-600 h-2.5 rounded-full transition-all duration-1000 ease-in-out"
-              style={{ width: `${((currentQuestion + 1) / quizQuestions.length) * 100}%` }}
-            ></div>
-          </div>
-
-          <div className="mb-6 animate-slide-in">
-            <h3 className="text-xl font-semibold mb-4 hover:text-green-600 transition-colors">
-              {quizQuestions[currentQuestion].question}
-            </h3>
-            
-            <div className="space-y-3">
-              {quizQuestions[currentQuestion].options.map((option, index) => {
-                const currentAttempts = attempts[currentQuestion] || [];
-                const wasAttempted = currentAttempts.includes(option);
-                
-                return (
-                  <button
-                    key={index}
-                    onClick={() => handleAnswerClick(option)}
-                    className={`w-full text-left p-3 rounded-lg transition-all duration-300 transform hover:scale-102 
-                      ${selectedAnswer === option
-                        ? option === quizQuestions[currentQuestion].correctAnswer
-                          ? 'bg-green-100 border-2 border-green-500 animate-bounce'
-                          : 'bg-red-100 border-2 border-red-500 animate-shake'
-                        : wasAttempted && option !== quizQuestions[currentQuestion].correctAnswer
-                          ? 'bg-red-50 text-gray-500'
-                          : 'bg-gray-100 hover:bg-gray-200 hover:shadow-md'
-                      }`}
-                    disabled={false}  // Never disable buttons to allow multiple attempts
-                  >
-                    <div className="flex items-center">
-                      <span className="mr-2">{String.fromCharCode(65 + index)}.</span>
-                      {option}
-                      {wasAttempted && option !== quizQuestions[currentQuestion].correctAnswer && 
-                        <span className="ml-2 text-red-500">✗</span>
-                      }
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Feedback Messages */}
-          {showAnswer && (
-            <Alert className={`mb-4 transform transition-all duration-300 ${
-              isCorrect ? 'bg-green-100 animate-bounce' : 'bg-red-100 animate-shake'
-            }`}>
-              {isCorrect ? (
-                <div className="flex items-center">
-                  <CheckCircle2 className="h-5 w-5 text-green-600 mr-2 animate-bounce" />
-                  <AlertDescription>
-                    <span className="font-bold">Correct! 🎉 </span>
-                    {quizQuestions[currentQuestion].funFact}
-                  </AlertDescription>
-                </div>
-              ) : (
-                <div className="flex items-center">
-                  <AlertCircle className="h-5 w-5 text-red-600 mr-2 animate-pulse" />
-                  <AlertDescription>
-                    <span className="font-bold">Not quite! 🤔 </span>
-                    Keep trying! You'll get it right!
-                  </AlertDescription>
-                </div>
-              )}
-            </Alert>
-          )}
-
-          {/* Score and Attempts Display */}
-          <div className="mt-4 text-center space-y-2">
-            <div className="text-sm text-gray-500">
-              Attempts this question: {(attempts[currentQuestion] || []).length}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default Quiz;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
